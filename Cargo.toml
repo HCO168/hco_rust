@@ -1,0 +1,36 @@
+[package]
+name = "hco"
+version = "0.0.0"
+edition = "2024"
+description = "HCO: Math and container utilities for Rust. Notice: study purpose, not production ready."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/HCO168/hco_rust"
+documentation = "https://docs.rs/hco" # docs.rs 自动文档
+readme = "README.md"
+keywords = ["math", "interval", "utils", "fraction"] # 搜索关键词
+categories = ["algorithms", "data-structures"]  # crates.io 分类
+
+
+include = [
+    "Cargo.toml",
+    "README.md",
+    "LICENSE",
+    "src/lib.rs",
+    #ok to publish:
+    "src/math/interval.rs",
+    "src/math/math.rs",
+    "src/math/fraction.rs",
+]
+
+
+[lib]
+name = "hco"
+path = "src/lib.rs"
+
+[dependencies]
+
+[features]
+default = ["math"]                    # 默认启用 math
+math = []                             # 数学相关模块
+container = []                        # 容器工具模块
+tool = []                             # 开发工具模块（可选）
