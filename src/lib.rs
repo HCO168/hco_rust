@@ -1,11 +1,12 @@
 mod math;
+#[cfg(feature = "tool")]
 mod tool;
+#[cfg(feature = "container")]
 mod container;
 
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn it_works() {
