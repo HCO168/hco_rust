@@ -1,3 +1,3 @@
-﻿mod math;
+﻿mod fraction;
 mod interval;
-mod fraction;
+mod math;
