@@ -25,10 +25,11 @@ include = [
 
 
 [lib]
-name = "hco"
+name = "lib"
 path = "src/lib.rs"
 
 [dependencies]
+rand = "0.9.2"
 
 [features]
 default = ["math"]                    # 默认启用 math

@@ -2,7 +2,7 @@
 use std::cmp::Ordering::Greater;
 use std::{mem, ptr};
 use std::mem::{swap, MaybeUninit};
-use crate::container::array::Array;
+use crate::containers::array::Array;
 
 pub fn merge_sort<T>(l:&mut [T], a:usize, b:usize,cmp:fn(&T,&T)->Ordering)
 where T:{

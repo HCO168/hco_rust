@@ -1,4 +1,4 @@
-﻿use crate::math::math::gcd_stein;
+﻿use crate::math::mathtool::gcd_stein;
 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
