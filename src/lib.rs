@@ -1,14 +1,11 @@
 #![allow(unused_parens)]
 #![allow(dead_code)]
+//re-exports
 
-
+#[cfg(feature = "math")]
 mod math;
-#[cfg(feature = "tool")]
-mod tool;
 #[cfg(feature = "container")]
 mod containers;
-mod containers;
-
 #[cfg(test)]
 mod tests {
 

@@ -20,6 +20,22 @@ impl<T: Ord> OrderedSetSearch<T> for BTreeSet<T> {
         (self.left_of(value), self.right_of(value))
     }
 }
+
+pub trait OrderedSetCollect<K: Ord+Clone> {
+
+    fn collect_keys_ref(&self, interval: impl std::ops::RangeBounds<K>) -> Vec<&K>;
+
+    fn collect_keys(&self, interval: impl std::ops::RangeBounds<K>) -> Vec<K>;
+}
+impl<K: Ord+Clone> OrderedSetCollect<K> for BTreeSet<K> {
+    fn collect_keys_ref(&self, interval: impl std::ops::RangeBounds<K>) -> Vec<&K> {
+        self.range(interval).map(|(k)| k).collect()
+    }
+
+    fn collect_keys(&self, interval: impl std::ops::RangeBounds<K>) -> Vec<K> {
+        self.range(interval).map(|(k)|->K{k.clone()}).collect()
+    }
+}
 pub trait OrderedMapSearch<K: Ord, V> {
     fn left_of(&self, key: &K) -> Option<(&K, &V)>;       // 前驱
     fn right_of(&self, key: &K) -> Option<(&K, &V)>;      // 后继

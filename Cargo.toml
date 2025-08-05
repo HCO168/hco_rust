@@ -17,22 +17,19 @@ include = [
     "LICENSE",
     "src/lib.rs",
     #ok to publish:
-    "src/*",
-    "src/math/interval.rs",
-    "src/math/math.rs",
-    "src/math/fraction.rs",
+    "src/**"
 ]
 
 
 [lib]
-name = "hco"
+name = "lib"
 path = "src/lib.rs"
 
 [dependencies]
 rand = "0.9.2"
+num-traits = "0.2.19"
 
 [features]
-default = ["math"]                    # 默认启用 math
-math = []                             # 数学相关模块
-container = []                        # 容器工具模块
-tool = []                             # 开发工具模块（可选）
+default = ["math","container"]
+math = []
+container = []

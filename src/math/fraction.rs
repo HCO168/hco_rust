@@ -1,13 +1,16 @@
 ﻿use crate::math::mathtool::gcd_stein;
 
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Fraction {
-    p: i64,
-    q: i64,
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Fraction<T> {
+    p: T,
+    q: T,
 }
 
-impl Fraction {
+impl<T:> Fraction<T> {
+    
+}
+impl Fraction<i64> {
     pub const fn new(numerator: i64, denominator: i64) -> Self {
         if denominator == 0 {
             panic!("Denominator cannot be zero.");

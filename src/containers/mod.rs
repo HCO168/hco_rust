@@ -1,5 +1,5 @@
 ﻿mod array;
-mod continued_sets;
+pub mod interval_set;
 mod sort;
-mod ordered;
-mod ord_wrap;
+pub mod ordered;
+pub mod ord_wrap;
