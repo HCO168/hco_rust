@@ -28,3 +28,7 @@ path = "src/lib.rs"
 [dependencies]
 
 [features]
+default = ["math","container","ntr_lang"]
+math = []
+container = []
+ntr_lang=[]
