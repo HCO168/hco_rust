@@ -1,6 +1,6 @@
 ﻿//generate by ChatGPT
 
-use std::mem::{ManuallyDrop, MaybeUninit};
+use std::mem::MaybeUninit;
 use std::ops::{Index, IndexMut, Deref, DerefMut};
 
 pub struct Array<T> {

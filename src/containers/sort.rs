@@ -1,7 +1,7 @@
 ﻿use std::cmp::Ordering;
 use std::cmp::Ordering::Greater;
-use std::{mem, ptr};
-use std::mem::{swap, MaybeUninit};
+use std::{ptr};
+use std::mem::{ MaybeUninit};
 use crate::containers::array::Array;
 
 pub fn merge_sort<T>(l:&mut [T], a:usize, b:usize,cmp:fn(&T,&T)->Ordering)
@@ -83,14 +83,18 @@ pub fn insertion_sort<T>(l:&mut [T],a:usize,b:usize,cmp:fn(&T,&T)->Ordering)wher
     }
 }
 unsafe fn set_uninit<T>(dst: &mut MaybeUninit<T>,src: &mut T) {
-    // SAFETY: src 必须有效且不会再使用，dst 必须未初始化
-    let val = ptr::read(src);              // move 出 src
-    ptr::write(dst.as_mut_ptr(), val);   
-    // 写入 dst
+    unsafe{
+        // SAFETY: src 必须有效且不会再使用，dst 必须未初始化
+        let val = ptr::read(src);              // move 出 src
+        ptr::write(dst.as_mut_ptr(), val);
+        // 写入 dst
+    }
 }
 unsafe fn set_init_from_uninit<T>(dst: &mut T,src: &mut MaybeUninit<T>) {
     // SAFETY: src 必须已初始化且不会再使用
-    let val = ptr::read(src.as_ptr());          // move 出 src
-    ptr::write(dst, val);
-    // 写入 dst
+    unsafe{
+        let val = ptr::read(src.as_ptr());          // move 出 src
+        ptr::write(dst, val);
+        // 写入 dst
+    }
 }

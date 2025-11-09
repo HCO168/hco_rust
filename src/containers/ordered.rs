@@ -1,5 +1,4 @@
 ﻿use std::collections::{BTreeMap, BTreeSet};
-use crate::math::interval::Interval;
 
 pub trait OrderedSetSearch<T: Ord> {
     fn left_of(&self, value: &T) -> Option<&T>;       // 前驱
@@ -74,7 +73,7 @@ impl<K: Ord+Clone, V> OrderedMapCollect<K, V> for BTreeMap<K, V> {
 #[cfg(test)]
 mod tests {
     use std::collections::{BTreeMap, BTreeSet};
-    use crate::containers::ordered::*;
+    
 
     #[test]
     fn test_left_of() {

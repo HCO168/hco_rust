@@ -70,6 +70,6 @@ pub mod test{
     #[test]
     #[should_panic(expected="value must satisfy v == v")]
     pub fn test2() {
-        let a=Ordered::from(f32::NAN);
+        let _a=Ordered::from(f32::NAN);
     }
 }
