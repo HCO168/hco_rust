@@ -6,6 +6,10 @@
 mod math;
 #[cfg(feature = "container")]
 mod containers;
+#[cfg(feature = "ntr_lang")]
+mod ntr_lang;
+mod tool;
+
 #[cfg(test)]
 mod tests {
 

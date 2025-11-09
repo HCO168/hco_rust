@@ -1,7 +1,7 @@
-﻿use std::cmp::Ordering;
-use std::collections::BTreeSet as OrderedSet;
+﻿use std::collections::BTreeSet as OrderedSet;
 use std::collections::BTreeMap as OrderedMap;
-use std::fmt::{Display, Formatter, Write};
+use std::fmt::Formatter;
+use std::fmt::Display;
 use crate::containers::interval_set::PointStatus::{InExclude, InInterval, InInclude, Outside};
 use crate::containers::ord_wrap::Ordered;
 use crate::math::interval::*;
@@ -169,7 +169,6 @@ impl<T:Ord+ToString+Default> Display for IntervalSet<T>{
         let mut current_interval =interval_iter.next();
         let default = T::default();
         let mut helper=SetOutputHelper::new(&default);
-        'outer:
         while(current_point.is_some()||current_interval.is_some()){
             match current_point{
                 //when there is some points left

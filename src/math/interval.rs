@@ -1,4 +1,4 @@
-﻿use std::cmp::Ordering;
+﻿use std::fmt::{Display, Formatter};
 use std::ops::{Bound, Range, RangeBounds, RangeInclusive};
 
 pub struct Interval<T>where T:Ord{
@@ -62,6 +62,12 @@ impl<T:Ord> RangeBounds<T> for Interval<T> {
         }else{
             Bound::Included(self.right())
         }
+    }
+}
+impl<T:Display + std::cmp::Ord> Display for Interval<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}{},{}{}", if(self.left_open()){"("}else{"["}, self.left().to_string(),
+        self.right().to_string(),if(self.right_open()){"("}else{"["})
     }
 }
 
