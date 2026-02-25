@@ -1,4 +1,5 @@
-﻿
+mod addtive;
+
 pub trait NAN {
     fn is_nan(&self) -> bool;
 }

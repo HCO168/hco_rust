@@ -2,10 +2,10 @@
 use std::collections::BTreeMap as OrderedMap;
 use std::fmt::Formatter;
 use std::fmt::Display;
-use crate::containers::interval_set::PointStatus::{InExclude, InInterval, InInclude, Outside};
-use crate::containers::ord_wrap::Ordered;
+use crate::data::interval_set::PointStatus::{InExclude, InInterval, InInclude, Outside};
+use crate::data::ord_wrap::Ordered;
 use crate::math::interval::*;
-use crate::containers::ordered::*;
+use crate::data::ordered::*;
 
 pub struct IntervalSet<T>
 where T:Ord,{

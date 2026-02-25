@@ -1,14 +1,14 @@
-﻿use crate::math::mathtool::gcd_stein;
-
+﻿use std::ops::Add;
+use crate::math::mathtool::gcd_stein;
+use crate::math::traits::Signed;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Fraction<T> {
-    p: T,
-    q: T,
+    p: T, //numerator
+    q: T, //denominator
 }
 
-impl<T:> Fraction<T> {
-    
+impl<T> Fraction<T> {
 }
 impl Fraction<i64> {
     pub const fn new(numerator: i64, denominator: i64) -> Self {
@@ -17,15 +17,15 @@ impl Fraction<i64> {
         }
 
         let gcd = gcd_stein(numerator.abs(), denominator.abs());
-        let mut num = numerator / gcd;
-        let mut den = denominator / gcd;
+        let mut p = numerator / gcd;
+        let mut q = denominator / gcd;
 
-        if den < 0 {
-            num = -num;
-            den = -den;
+        if q < 0 {
+            p = -p;
+            q = -q;
         }
 
-        Self { p: num, q: den }
+        Self { p, q }
     }
 
     pub fn numerator(&self) -> i64 {
