@@ -1,5 +1,6 @@
 ﻿use std::fmt::{Display, Formatter};
 use std::ops::{Bound, Range, RangeBounds, RangeInclusive};
+use crate::data::traits::set::Contains;
 
 pub struct Interval<T>where T:Ord{
     range: ClosedRange<T>,
@@ -19,14 +20,6 @@ impl<T> Interval<T> where T:Ord{
     pub fn from_closed(range: ClosedRange<T>) -> Self {
         Interval { range, flag: IntervalFlag::new(false, false) }
     }
-    
-    
-    
-    pub fn contain(&self,value:&T)->bool{(
-        if(self.left_open()){value>self.left()}else{value>=self.left()}//check left
-        &&
-        if(self.right_open()){value<self.right() }else{value<=self.right()} //check right
-    )}
     pub const fn left(&self)->&T{&self.range.lf}
     pub const fn right(&self)->&T{&self.range.rt}
     pub const fn left_open(&self) -> bool{self.flag.left_open()}
@@ -47,7 +40,13 @@ impl<T> Interval<T> where T:Ord{
         (self.range.lf,self.range.rt,self.flag)
     }
 }
-
+impl<T:Ord> Contains<T> for Interval<T>{
+    fn contains(&self,value:&T)->bool{(
+        if(self.left_open()){value>self.left()}else{value>=self.left()}//check left
+            &&
+            if(self.right_open()){value<self.right() }else{value<=self.right()} //check right
+    )}
+}
 impl<T:Ord> RangeBounds<T> for Interval<T> {
     fn start_bound(&self) -> Bound<&T> {
         if(self.left_open()){
@@ -97,10 +96,6 @@ impl<T: Ord> ClosedRange<T> {
     pub fn new(lf: T, rt: T)->ClosedRange<T>{
         ClosedRange{lf, rt }
     }
-    
-    pub fn contains(&self, value: &T) -> bool {
-        self.lf <= *value && *value <= self.rt
-    }
 
     pub fn is_overlap(&self, other: &ClosedRange<T>) -> bool {
         other.rt >= self.lf && self.rt >= other.lf
@@ -119,5 +114,10 @@ impl<T: Ord> ClosedRange<T> {
     pub fn to_range(&self) -> RangeInclusive<T>
     where T: Clone {
         self.lf.clone()..=self.rt.clone()
+    }
+}
+impl<T:Ord> Contains<T> for ClosedRange<T>{
+    fn contains(&self, value: &T) -> bool {
+        self.lf <= *value && *value <= self.rt
     }
 }

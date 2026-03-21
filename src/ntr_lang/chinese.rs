@@ -1,13 +1,20 @@
 use crate::dprintln;
 use crate::math::digits::Digits;
-use crate::ntr_lang::lang::LanguageParser;
+use crate::ntr_lang::lang::{LanguageParser, NumToLangParser, NumberConvertError};
 
 pub struct Chinese {
-    //prefer 零 over 〇
+}
+impl LanguageParser for Chinese{
+    fn name() -> &'static str {
+        return "Chinese";
+    }
+}
+pub struct NumberToChineseParser {
+    ///prefer 零 over 〇
     prefer_ling:bool,
-    //prefer 一十 over 十
+    ///prefer 一十 over 十
     prefer_one_ten:bool,
-    //control whether to use traditional
+    ///control whether to use traditional
     traditional:bool,
 }
 ///units of 10^4 in simplified chinese
@@ -18,27 +25,28 @@ const MEGA_UNITS: [&str; 12] = [
 const MEGA_UNITS_TRAD: [&str; 12] = [
     "", "萬", "億", "兆", "京", "垓", "秭", "穰", "溝", "澗", "正", "載"
 ];
-///digits in both chinese lang
+///digits in both Chinese versions
 const DIGITS: [char; 9] = [
     '一','二','三','四','五','六','七','八','九',
 ];
 
-impl Chinese {
-    pub fn default()->Chinese{
-        Chinese{
+impl NumberToChineseParser {
+    pub fn default()-> NumberToChineseParser {
+        NumberToChineseParser {
             prefer_ling:true,
             prefer_one_ten:false,
             traditional:false,
         }
     }
-    pub fn new(prefer_ling:bool, prefer_one_ten:bool, traditional:bool)->Chinese{
-        Chinese{
+    ///create a new Chinese parser with customized options
+    pub fn new(prefer_ling:bool, prefer_one_ten:bool, traditional:bool)-> NumberToChineseParser {
+        NumberToChineseParser {
             prefer_ling,
             prefer_one_ten,
             traditional
         }
     }
-    pub fn megaunit(&self, place: usize) -> Result<&'static str, &str> {
+    pub fn megaunit(&self, place: usize) -> Result<&'static str, NumberConvertError> {
         if (!self.traditional) {
             if place < MEGA_UNITS.len() {
                 return Ok(MEGA_UNITS[place])
@@ -48,7 +56,7 @@ impl Chinese {
                 return Ok(MEGA_UNITS_TRAD[place])
             }
         }
-        Err("Too big too find a unit")
+        Err(NumberConvertError::NumberOutOfRange)
     }
     pub fn digit_to_char(&self,digit: u8) -> char {
         if (digit > 0 && digit <= 9) {
@@ -65,12 +73,8 @@ impl Chinese {
         }
     }
 }
-impl LanguageParser for Chinese{
-    fn name() -> &'static str {
-        return "Chinese";
-    }
-    fn number_to_text(&self, num: Digits) -> Result<String,&str> {
-        dprintln!("num:{}",num.cast_to_string());
+impl NumToLangParser for NumberToChineseParser {
+    fn number_to_text(&self, num: Digits) -> Result<String, NumberConvertError> {
         let last_digit= num.len()-1;
         let mut text = String::new();
         let mut zeros:usize=0;
@@ -78,7 +82,7 @@ impl LanguageParser for Chinese{
             //counting zeros
             if(*digit==0){
                 //if it is the first place zero but
-                //there is no zero in the smaller section we still need to add zero
+                //there is no zero in the smaller section, we still need to add zero
                 if(place%4==0&&place!=0){
                     if(zeros==0){
                         text.push(self.zero());
@@ -96,12 +100,11 @@ impl LanguageParser for Chinese{
                     //if the whole section is 0, skip it
                     continue;
                 }else{
-                    //enter normal process
+                    //enter the normal process
                     text.push_str(self.megaunit(place/4)?);
                     let mut section_zeros:usize=0;
                     for (section_place,section_digit) in num.get_u8_array()
                         [section_start..=place].iter().enumerate(){
-                        dprintln!("section[{section_place}]={section_digit}");
                         if(*section_digit==0){
                             //check is there any hanging zeros, like 1001
                             //if it is the rightmost place of 0, we should consider adding 零
@@ -109,7 +112,6 @@ impl LanguageParser for Chinese{
                                 //do not add 零 when it is the rightmost digit in the section
                                 //but add it elsewhere
                                 if(section_place != 0) {
-                                    dprintln!("Adding zero at {} place with zero count of {}!",section_place,section_zeros);
                                     text.push(self.zero());
                                 }
                             }
@@ -118,7 +120,7 @@ impl LanguageParser for Chinese{
                         }else{
                             //reset section zeros
                             section_zeros=0;
-                            //enter normal number process
+                            //enter the normal number process
                             //add the approximate unit in section
                             match section_place{
                                 0=>(),
@@ -141,12 +143,10 @@ impl LanguageParser for Chinese{
                             }
                             text.push(self.digit_to_char(*section_digit));
                         }
-                        dprintln!("{}",text);
                     }
                 }
             }
         }
-        dprintln!("{}\n\n",text);
         Ok(text.chars().rev().collect::<String>())
     }
 }
@@ -155,7 +155,7 @@ mod tests {
     use super::*;
 
     fn make(num: u64) -> String {
-        Chinese::default()
+        NumberToChineseParser::default()
             .number_to_text(Digits::from_u64(num, 10))
             .unwrap()
     }
@@ -245,7 +245,7 @@ mod tests {
     #[test]
     fn test_traditional_mode() {
         // 测试繁体字（如萬、億）
-        let trad = Chinese {
+        let trad = NumberToChineseParser {
             prefer_ling: false,
             prefer_one_ten: false,
             traditional: true,
@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     fn test_edge_and_error_cases() {
-        let c = Chinese {
+        let c = NumberToChineseParser {
             prefer_ling: false,
             prefer_one_ten: false,
             traditional: false,
