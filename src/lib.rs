@@ -12,6 +12,7 @@ mod tool;
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Neg;
 
     #[test]
     fn it_works() {

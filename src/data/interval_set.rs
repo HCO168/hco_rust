@@ -4,7 +4,7 @@ use std::fmt::Formatter;
 use std::fmt::Display;
 use crate::data::interval_set::PointStatus::{InExclude, InInterval, InInclude, Outside};
 use crate::data::ord_wrap::Ordered;
-use crate::math::interval::*;
+use crate::data::interval::*;
 use crate::data::ordered::*;
 
 pub struct IntervalSet<T>

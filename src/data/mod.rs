@@ -6,3 +6,4 @@ pub mod ord_wrap;
 pub mod map;
 mod bound_protect;
 mod traits;
+pub mod interval;

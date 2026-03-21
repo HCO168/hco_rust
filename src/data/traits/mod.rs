@@ -1,1 +1,2 @@
-mod set;
+pub mod set;
+mod bitmap;
