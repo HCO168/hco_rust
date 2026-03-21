@@ -5,7 +5,7 @@
 #[cfg(feature = "math")]
 mod math;
 #[cfg(feature = "data")]
-mod data;
+mod datas;
 #[cfg(feature = "ntr_lang")]
 mod ntr_lang;
 mod tool;

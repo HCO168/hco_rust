@@ -1,6 +1,6 @@
 ﻿use std::fmt::{Display, Formatter};
 use std::ops::{Bound, Range, RangeBounds, RangeInclusive};
-use crate::data::traits::set::Contains;
+use crate::datas::traits::set::Contains;
 
 pub struct Interval<T>where T:Ord{
     range: ClosedRange<T>,
