@@ -4,6 +4,7 @@ pub mod sort;
 pub mod ordered;
 pub mod ord_wrap;
 pub mod map;
+pub mod btree;
 pub mod bound_protect;
 pub mod traits;
 pub mod interval;

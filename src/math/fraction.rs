@@ -1,6 +1,4 @@
-﻿use std::ops::Add;
-use crate::math::mathtool::gcd_stein;
-use crate::math::traits::Signed;
+﻿use crate::math::mathtool::gcd_stein;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Fraction<T> {

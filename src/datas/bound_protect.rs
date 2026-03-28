@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-///Index Protector for array when out of bound
+///Index Protector for arrays when out of bound
 pub enum ProtectStrategy<V> {
     Closest,
     Loop,

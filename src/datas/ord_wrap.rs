@@ -1,16 +1,17 @@
 ﻿use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
+use crate::math::traits::multiplicative::IsNaN;
 
 #[derive(Debug, Clone, Copy, PartialEq,PartialOrd)]
 pub struct Ordered<T>(T)
-where T:PartialOrd;
-impl<T> Ordered<T>where T:PartialOrd{
+where T:IsNaN;
+impl<T> Ordered<T>where T:IsNaN{
     fn from(v: T) -> Self {
         Ordered::new(v).expect("value must satisfy v == v")
     }
     pub fn new(v:T)->Option<Ordered<T>>{
-        if(v==v){
+        if(v.not_nan()){
             Some(Ordered(v))
         }else{
             None
@@ -20,7 +21,7 @@ impl<T> Ordered<T>where T:PartialOrd{
         self.0
     }
     pub fn set(&mut self, v: T) -> bool {
-        if (v==v) {
+        if (v.is_nan()) {
             self.0 = v;
             true
         } else {
@@ -71,5 +72,11 @@ pub mod test{
     #[should_panic(expected="value must satisfy v == v")]
     pub fn test2() {
         let _a=Ordered::from(f32::NAN);
+    }
+    #[test]
+    pub fn test3() {
+        let a=Ordered::from(2.6);
+        let b=Ordered::from(2.9);
+        assert!(b>a)
     }
 }
