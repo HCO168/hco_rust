@@ -1,4 +1,4 @@
-use super::multiplicative::IsNaN;
+use crate::math::traits::floatoid::IsNaN;
 
 /// Trait for types that has a minimum.
 pub trait MinValue {
@@ -9,8 +9,6 @@ pub trait MaxValue {
     const MAX: Self;
 }
 /// Combination trait for types with both minimum and maximum constants.
-pub trait Bounds: MinValue + MaxValue {}
-impl<T: MinValue + MaxValue> Bounds for T {}
 /// Implement MIN/MAX constants for primitive numeric types.
 macro_rules! impl_bounds_value {
     ($($t:ty),* $(,)?) => {
@@ -27,8 +25,9 @@ macro_rules! impl_bounds_value {
 impl_bounds_value!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
 
 
+
 /// Min and Max operations that support partially ordered types.
-pub trait MinMax:PartialOrd{
+pub trait MinMax: PartialOrd + IsNaN {
     /// Choose the min.
     /// - if exactly one side is NaN, return the other side
     /// - if both sides are NaN, return NaN
@@ -114,29 +113,35 @@ pub trait MinMax:PartialOrd{
         }
     }
 }
-impl<T:MinMax> MinMax for Option<T>{
+impl<T: MinMax> MinMax for Option<T> {
     fn min(self, other: Option<T>) -> Option<T>
-    where Self: Sized,{
+    where
+        Self: Sized,
+    {
         match (self, other) {
-            (Some(v1), Some(v2)) => Some(v1.min(v2)),
+            (Some(v1), Some(v2)) => Some(MinMax::min(v1, v2)),
             (Some(v1), None) => Some(v1),
             (None, Some(v2)) => Some(v2),
             (None, None) => None,
         }
     }
     fn max(self, other: Option<T>) -> Option<T>
-    where Self: Sized,{
+    where
+        Self: Sized,
+    {
         match (self, other) {
-            (Some(v1), Some(v2)) => Some(v1.max(v2)),
+            (Some(v1), Some(v2)) => Some(MinMax::max(v1, v2)),
             (Some(v1), None) => Some(v1),
             (None, Some(v2)) => Some(v2),
             (None, None) => None,
         }
     }
     fn clamp(self, min: Option<T>, max: Option<T>) -> Option<T>
-    where Self: Sized,{
+    where
+        Self: Sized,
+    {
         match self {
-            Some(v) => v.clamp_opt(min, max),
+            Some(v) => MinMax::clamp_opt(v, min, max),
             None => match (min, max) {
                 (Some(min_v), None) => Some(min_v),
                 (None, Some(max_v)) => Some(max_v),
@@ -170,6 +175,25 @@ macro_rules! impl_min_max_ord {
                     }
                 }
             }
+            impl MinMax for &$t {
+                fn min(self, other: Self) -> Self {
+                    if self < other { self } else { other }
+                }
+                fn max(self, other: Self) -> Self {
+                    if self > other { self } else { other }
+                }
+                fn clamp(self, min: Self, max: Self) -> Self {
+                    if min <= max {
+                        if self < min { min }
+                        else if self > max { max }
+                        else { self }
+                    } else {
+                        if self < max { max }
+                        else if self > min { min }
+                        else { self }
+                    }
+                }
+            }
         )*
     };
 }
@@ -180,10 +204,18 @@ macro_rules! impl_min_max_float {
         $(
             impl MinMax for $t {
                 fn min(self, other: Self) -> Self {
-                    self.min(other)
+                    <$t>::min(self, other)
                 }
                 fn max(self, other: Self) -> Self {
-                    self.max(other)
+                    <$t>::max(self, other)
+                }
+            }
+            impl MinMax for &$t {
+                fn min(self, other: Self) -> Self {
+                    if *self < *other { self } else { other }
+                }
+                fn max(self, other: Self) -> Self {
+                    if *self > *other { self } else { other }
                 }
             }
         )*
@@ -313,6 +345,10 @@ mod test{
         assert_opt_f32_eq_or_nan(Some(1.0).min(Some(f32::NAN)), Some(1.0));
         assert_opt_f32_eq_or_nan(Some(f32::NAN).max(Some(1.0)), Some(1.0));
         assert_opt_f32_eq_or_nan(Some(1.0).max(Some(f32::NAN)), Some(1.0));
+    }
+    #[test]
+    fn test_min_max_with_ref(){
+        assert_eq!(MinMax::clamp(&3f32,&1f32,&2f32),&2f32);
     }
     pub struct TestStruct<T>{
         a:T,

@@ -41,25 +41,3 @@ macro_rules! impl_recip_float{
 impl_recip_float!(f32, f64);
 
 
-///Trait for checking if a number is NaN
-pub trait IsNaN{
-    fn is_nan(&self) -> bool;
-    fn not_nan(&self) -> bool;
-}
-///Auto-Implementation of CheckNaN
-impl<T:PartialEq> IsNaN for T{
-    fn is_nan(&self) -> bool {
-        self!=self
-    }
-    fn not_nan(&self) -> bool {
-        self==self
-    }
-}
-
-///Marker trait for types that can be NaN
-pub trait NaN{
-    const NAN:Self;
-}
-impl NaN for f32{ const NAN: Self = f32::NAN; }
-impl NaN for f64{ const NAN: Self = f64::NAN; }
-

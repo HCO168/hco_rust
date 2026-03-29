@@ -1,7 +1,7 @@
 ﻿use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
-use crate::math::traits::multiplicative::IsNaN;
+use crate::math::traits::floatoid::IsNaN;
 
 #[derive(Debug, Clone, Copy, PartialEq,PartialOrd)]
 pub struct Ordered<T>(T)
@@ -30,32 +30,32 @@ impl<T> Ordered<T>where T:IsNaN{
     }
 }
 
-impl<T: PartialOrd> Eq for Ordered<T> {
+impl<T: PartialOrd + IsNaN> Eq for Ordered<T> {
 }
 
-impl<T:PartialOrd> Ord for Ordered<T>{
+impl<T: PartialOrd + IsNaN> Ord for Ordered<T>{
     fn cmp(&self,other:&Ordered<T>)->Ordering{
         self.0.partial_cmp(&other.0).unwrap()
     }
 }
-impl<T:Default + PartialOrd> Default for Ordered<T> {
+impl<T: Default + PartialOrd + IsNaN> Default for Ordered<T> {
     fn default() -> Ordered<T> {
         Ordered(T::default())
     }
 }
-impl<T:Display+PartialOrd> Display for Ordered<T> {
+impl<T: Display + PartialOrd + IsNaN> Display for Ordered<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl<T:PartialOrd> Deref for Ordered<T> {
+impl<T: PartialOrd + IsNaN> Deref for Ordered<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl<T: PartialOrd> AsRef<T> for Ordered<T> {
+impl<T: PartialOrd + IsNaN> AsRef<T> for Ordered<T> {
     fn as_ref(&self) -> &T { &self.0 }
 }
 

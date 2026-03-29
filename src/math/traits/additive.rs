@@ -1,10 +1,45 @@
 use std::cmp::Ordering;
-use std::ops::Neg;
 
 
 ///Additive Identity, make no change when added to a value
 pub trait AddId {
     const ZERO:Self;
+    fn is_zero(&self) -> bool
+    where
+        Self: Sized + PartialEq,
+    {
+        self == &Self::ZERO
+    }
+    fn not_zero(&self) -> bool
+    where
+        Self: Sized + PartialEq,
+    {
+        self != &Self::ZERO
+    }
+    fn is_positive(&self) -> bool
+    where
+        Self: Sized + PartialOrd,
+    {
+        self > &Self::ZERO
+    }
+    fn is_negative(&self) -> bool
+    where
+        Self: Sized + PartialOrd,
+    {
+        self < &Self::ZERO
+    }
+    fn not_positive(&self) -> bool
+    where
+        Self: Sized + PartialOrd,
+    {
+        self <= &Self::ZERO
+    }
+    fn not_negative(&self) -> bool
+    where
+        Self: Sized + PartialOrd,
+    {
+        self >= &Self::ZERO
+    }
 }
 ///Implementation of AddID for basic types
 macro_rules! impl_add_id_int {
@@ -71,34 +106,51 @@ pub trait HasPartialSign {
     fn not_negative(&self) -> bool{self.partial_sign()!=Some(Sign::Negative)}
     fn not_zero(&self) -> bool{self.partial_sign()!=Some(Sign::Zero)}
 }
-///Auto-implementation for Get Sign & Partial Sign
-impl<T> HasSign for T where T:AddId+Ord{
-    fn sign(&self) -> Sign {
-        if(self>&T::ZERO){
-            Sign::Positive
-        }else if(self<&T::ZERO){
-            Sign::Negative
-        }else{
-            Sign::Zero
-        }
-    }
+/// Implement `HasSign` for fully ordered numeric primitives.
+macro_rules! impl_has_sign_ord {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl HasSign for $t {
+                fn sign(&self) -> Sign {
+                    if *self > <$t as AddId>::ZERO {
+                        Sign::Positive
+                    } else if *self < <$t as AddId>::ZERO {
+                        Sign::Negative
+                    } else {
+                        Sign::Zero
+                    }
+                }
+            }
+        )*
+    };
 }
-impl<T> HasPartialSign for T where T:AddId+PartialOrd{
-    fn partial_sign(&self) -> Option<Sign> {
-        match self.partial_cmp(&T::ZERO) {
-            Some(Ordering::Less) => Some(Sign::Negative),
-            Some(Ordering::Equal) => Some(Sign::Zero),
-            Some(Ordering::Greater) => Some(Sign::Positive),
-            None => None,
-        }
-    }
-    fn is_positive(&self) -> bool{self>&T::ZERO}
-    fn is_negative(&self) -> bool{self<&T::ZERO}
-    fn is_zero(&self) -> bool{self==&T::ZERO}
-    fn not_positive(&self) -> bool{self<&T::ZERO}
-    fn not_negative(&self) -> bool{self>&T::ZERO}
-    fn not_zero(&self) -> bool{self!=&T::ZERO}
+
+/// Implement `HasPartialSign` for partially ordered numeric primitives.
+macro_rules! impl_has_partial_sign {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl HasPartialSign for $t {
+                fn partial_sign(&self) -> Option<Sign> {
+                    match self.partial_cmp(&<$t as AddId>::ZERO) {
+                        Some(Ordering::Less) => Some(Sign::Negative),
+                        Some(Ordering::Equal) => Some(Sign::Zero),
+                        Some(Ordering::Greater) => Some(Sign::Positive),
+                        None => None,
+                    }
+                }
+                fn is_positive(&self) -> bool { *self > <$t as AddId>::ZERO }
+                fn is_negative(&self) -> bool { *self < <$t as AddId>::ZERO }
+                fn is_zero(&self) -> bool { *self == <$t as AddId>::ZERO }
+                fn not_positive(&self) -> bool { *self < <$t as AddId>::ZERO }
+                fn not_negative(&self) -> bool { *self > <$t as AddId>::ZERO }
+                fn not_zero(&self) -> bool { *self != <$t as AddId>::ZERO }
+            }
+        )*
+    };
 }
+
+impl_has_sign_ord!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+impl_has_partial_sign!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
 
 
 pub trait Signum{
@@ -153,6 +205,13 @@ macro_rules! impl_abs_signed {
                     <$t>::abs(self)
                 }
             }
+            impl Abs for &$t {
+                type Output = $t;
+                #[inline]
+                fn abs(self) -> $t {
+                    <$t>::abs(*self)
+                }
+            }
         )*
     };
 }
@@ -164,6 +223,13 @@ macro_rules! impl_abs_unsigned {
                 #[inline]
                 fn abs(self) -> $t {
                     self
+                }
+            }
+            impl Abs for &$t {
+                type Output = $t;
+                #[inline]
+                fn abs(self) -> $t {
+                    *self
                 }
             }
         )*
