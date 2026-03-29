@@ -16,6 +16,6 @@ mod tests {
 
     #[test]
     fn it_works() {
-        -3i32.max(3);
+        
     }
 }
