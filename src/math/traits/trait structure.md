@@ -6,24 +6,23 @@
 
 **IsNaN** 
 (include a function identifying NaN)
-* impl for T: PartialEq
-* impl for T: NeverNaN (return false)
+* auto impl for T: NeverNaN (return false)
 
 **MaybeNaN** 
 (marker for types that can actually be NaN)
 
-
 **NeverNaN** 
 (marker for types that can't be NaN)
-* auto impl for: T: Eq
-* in practice not overlapping with NaN
+* in practice not overlapping with MaybeNaN
 
 ## Min/Max
 
-**Min/Max : PartialOrd**
+**Min/Max: PartialOrd**
 (min/max value of values)
 
-## Constants
+# Constants
+
+## Type Expressiveness
 
 ### Finite boundaries
 
@@ -41,9 +40,17 @@
 **IsPosInf/IsNegInf** 
 (checks whether the value is positive or negative infinity)
 
+### Value closest to zero
 **MinPositiveValue/MaxNegativeValue** 
 (constants closest to zero)
 
+**IsMinPositiveValue/IsMaxNegativeValue** 
+(checks whether the value is closest to zero)
 
-AddId
+## Arithmetic Constants
+
+### AddId
+
+### MulId
+
 Signed:AddId

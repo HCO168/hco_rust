@@ -4,12 +4,12 @@
 //re-exports
 
 #[cfg(feature = "math")]
-mod math;
+pub mod math;
 #[cfg(feature = "data")]
-mod datas;
+pub mod datas;
 #[cfg(feature = "ntr_lang")]
-mod ntr_lang;
-mod tool;
+pub mod ntr_lang;
+pub mod tool;
 
 #[cfg(test)]
 mod tests {
