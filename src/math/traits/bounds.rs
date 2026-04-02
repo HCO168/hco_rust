@@ -1,10 +1,10 @@
 use crate::math::traits::floatoid::IsNaN;
 
-/// Trait for types that has a minimum.
+/// Trait for types that has a finite minimum.
 pub trait MinValue {
     const MIN: Self;
 }
-/// Trait for types that has a maximum.
+/// Trait for types that has a finite maximum.
 pub trait MaxValue {
     const MAX: Self;
 }
@@ -27,7 +27,7 @@ impl_bounds_value!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usiz
 
 
 /// Min and Max operations that support partially ordered types.
-pub trait MinMax: PartialOrd + IsNaN {
+pub trait MinMax: PartialOrd {
     /// Choose the min.
     /// - if exactly one side is NaN, return the other side
     /// - if both sides are NaN, return NaN

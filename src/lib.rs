@@ -1,5 +1,6 @@
 #![allow(unused_parens)]
 #![allow(dead_code)]
+#![feature(min_specialization)]
 //re-exports
 
 #[cfg(feature = "math")]

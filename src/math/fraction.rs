@@ -20,7 +20,7 @@ impl<T> Fraction<T> {
         &self.q
     }
 }
-impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T>> Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign> Fraction<T> {
     pub fn save_new(numerator: T, denominator: T) -> Self {
         if denominator.is_zero() {
             panic!("Denominator cannot be zero.");
@@ -95,7 +95,7 @@ impl<T: PartialOrd + AddId> PartialEq<Self> for Fraction<T> {
     }
 }
 impl<T:PartialOrd+AddId> Eq for Fraction<T> {}
-impl<T:PartialOrd+AddId+Mul<Output=T>+Sub<Output=T>> PartialOrd for Fraction<T> {
+impl<T:PartialOrd+AddId+Mul<Output=T>+Sub<Output=T> + HasPartialSign> PartialOrd for Fraction<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         if(self.q.is_zero()||other.q.is_zero()){
             return None;

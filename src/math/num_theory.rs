@@ -3,7 +3,7 @@ use crate::math::traits::additive::{Abs, AddId, HasPartialSign};
 
 pub fn gcd_euclid_recursive<T>(a: T, b: T) -> T
     where
-        T:AddId+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone
+        T:AddId+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone + HasPartialSign
 {
     let a = a.abs();
     let b = b.abs();
@@ -14,7 +14,7 @@ pub fn gcd_euclid_recursive<T>(a: T, b: T) -> T
 }
 pub fn gcd_euclid_iterative<T>(mut a: T, mut b: T) -> T
     where
-        T:AddId+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone
+        T:AddId+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone + HasPartialSign
 {
     a = a.abs();
     b = b.abs();

@@ -1,45 +1,10 @@
 use std::cmp::Ordering;
-
+use std::ops::{Add, Neg};
+use crate::math::traits::floatoid::IsNaN;
 
 ///Additive Identity, make no change when added to a value
 pub trait AddId {
     const ZERO:Self;
-    fn is_zero(&self) -> bool
-    where
-        Self: Sized + PartialEq,
-    {
-        self == &Self::ZERO
-    }
-    fn not_zero(&self) -> bool
-    where
-        Self: Sized + PartialEq,
-    {
-        self != &Self::ZERO
-    }
-    fn is_positive(&self) -> bool
-    where
-        Self: Sized + PartialOrd,
-    {
-        self > &Self::ZERO
-    }
-    fn is_negative(&self) -> bool
-    where
-        Self: Sized + PartialOrd,
-    {
-        self < &Self::ZERO
-    }
-    fn not_positive(&self) -> bool
-    where
-        Self: Sized + PartialOrd,
-    {
-        self <= &Self::ZERO
-    }
-    fn not_negative(&self) -> bool
-    where
-        Self: Sized + PartialOrd,
-    {
-        self >= &Self::ZERO
-    }
 }
 ///Implementation of AddID for basic types
 macro_rules! impl_add_id_int {
@@ -60,9 +25,31 @@ macro_rules! impl_add_id_float {
         )*
     };
 }
-
 impl_add_id_int!(i8, i16, i32, i64, isize, i128, u8, u16, u32, u64, usize, u128);
 impl_add_id_float!(f32, f64);
+
+
+///Marker traits for signed and unsigned
+/// (has positive and negative or only positive)
+pub trait Signed:AddId+Neg{}
+pub trait Unsigned:AddId{}
+///Implementation of Signed and Unsigned for basic types
+macro_rules! impl_unsigned {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl Unsigned for $t {}
+        )*
+    };
+}
+impl_unsigned!(u8,u16,u32,u64,u128,usize);
+macro_rules! impl_signed {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl Signed for $t {}
+        )*
+    };
+}
+impl_signed!(i8,i16,i32,i64,i128,isize,f32,f64);
 
 
 ///Sign of a number
@@ -94,64 +81,22 @@ impl From<Sign> for Ordering{
 
 
 ///Trait of getting the sign of a number
-pub trait HasSign: HasPartialSign {
-    fn sign(&self) -> Sign;
-}
-pub trait HasPartialSign {
+/// This represents types that can be NaN
+pub trait HasPartialSign{
     fn partial_sign(&self) -> Option<Sign>;
     fn is_positive(&self) -> bool{self.partial_sign()==Some(Sign::Positive)}
     fn is_negative(&self) -> bool{self.partial_sign()==Some(Sign::Negative)}
     fn is_zero(&self) -> bool{self.partial_sign()==Some(Sign::Zero)}
+    fn is_positive_or_zero(&self) -> bool{self.partial_sign()==Some(Sign::Positive)||self.partial_sign()==Some(Sign::Zero)}
+    fn is_negative_or_zero(&self) -> bool{self.partial_sign()==Some(Sign::Negative)||self.partial_sign()==Some(Sign::Zero)}
+    fn is_positive_or_negative(&self) -> bool{self.partial_sign()==Some(Sign::Positive)||self.partial_sign()==Some(Sign::Negative)}
     fn not_positive(&self) -> bool{self.partial_sign()!=Some(Sign::Positive)}
     fn not_negative(&self) -> bool{self.partial_sign()!=Some(Sign::Negative)}
     fn not_zero(&self) -> bool{self.partial_sign()!=Some(Sign::Zero)}
 }
-/// Implement `HasSign` for fully ordered numeric primitives.
-macro_rules! impl_has_sign_ord {
-    ($($t:ty),* $(,)?) => {
-        $(
-            impl HasSign for $t {
-                fn sign(&self) -> Sign {
-                    if *self > <$t as AddId>::ZERO {
-                        Sign::Positive
-                    } else if *self < <$t as AddId>::ZERO {
-                        Sign::Negative
-                    } else {
-                        Sign::Zero
-                    }
-                }
-            }
-        )*
-    };
+pub trait HasSign:HasPartialSign{
+    fn sign(&self) -> Sign;
 }
-
-/// Implement `HasPartialSign` for partially ordered numeric primitives.
-macro_rules! impl_has_partial_sign {
-    ($($t:ty),* $(,)?) => {
-        $(
-            impl HasPartialSign for $t {
-                fn partial_sign(&self) -> Option<Sign> {
-                    match self.partial_cmp(&<$t as AddId>::ZERO) {
-                        Some(Ordering::Less) => Some(Sign::Negative),
-                        Some(Ordering::Equal) => Some(Sign::Zero),
-                        Some(Ordering::Greater) => Some(Sign::Positive),
-                        None => None,
-                    }
-                }
-                fn is_positive(&self) -> bool { *self > <$t as AddId>::ZERO }
-                fn is_negative(&self) -> bool { *self < <$t as AddId>::ZERO }
-                fn is_zero(&self) -> bool { *self == <$t as AddId>::ZERO }
-                fn not_positive(&self) -> bool { *self < <$t as AddId>::ZERO }
-                fn not_negative(&self) -> bool { *self > <$t as AddId>::ZERO }
-                fn not_zero(&self) -> bool { *self != <$t as AddId>::ZERO }
-            }
-        )*
-    };
-}
-
-impl_has_sign_ord!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
-impl_has_partial_sign!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
-
 
 pub trait Signum{
     fn signum(&self) -> Self;
@@ -239,24 +184,3 @@ impl_abs_signed!(i8, i16, i32, i64, isize, i128, f32, f64);
 impl_abs_unsigned!(u8, u16, u32, u64, usize, u128);
 
 
-///Marker traits for signed and unsigned
-/// (has positive and negative or only positive)
-pub trait Signed{}
-pub trait Unsigned{}
-///Implementation of Signed and Unsigned for basic types
-macro_rules! impl_unsigned {
-    ($($t:ty),* $(,)?) => {
-        $(
-            impl Unsigned for $t {}
-        )*
-    };
-}
-impl_unsigned!(u8,u16,u32,u64,u128,usize);
-macro_rules! impl_signed {
-    ($($t:ty),* $(,)?) => {
-        $(
-            impl Signed for $t {}
-        )*
-    };
-}
-impl_signed!(i8,i16,i32,i64,i128,isize,f32,f64);

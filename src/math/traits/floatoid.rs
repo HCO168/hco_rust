@@ -1,43 +1,28 @@
 /// Trait for checking if a number is NaN.
-pub trait IsNaN:PartialEq {
+pub trait IsNaN {
     fn is_nan(&self) -> bool;
     fn not_nan(&self) -> bool {
         !self.is_nan()
     }
 }
-
-macro_rules! impl_is_nan_float {
-    ($($t:ty),* $(,)?) => {
-        $(
-            impl IsNaN for $t {
-                fn is_nan(&self) -> bool {
-                    <$t>::is_nan(*self)
-                }
-            }
-            impl IsNaN for &$t {
-                fn is_nan(&self) -> bool {
-                    <$t>::is_nan(**self)
-                }
-            }
-        )*
-    };
+impl<T: PartialEq> IsNaN for T {
+    default fn is_nan(&self) -> bool {
+        self != self
+    }
+    default fn not_nan(&self) -> bool {
+        self == self
+    }  
 }
 
-macro_rules! impl_is_nan_non_float {
-    ($($t:ty),* $(,)?) => {
-        $(
-            impl IsNaN for $t {
-                fn is_nan(&self) -> bool {
-                    false
-                }
-            }
-            impl IsNaN for &$t {
-                fn is_nan(&self) -> bool {
-                    false
-                }
-            }
-        )*
-    };
+impl IsNaN for f32 {
+    fn is_nan(&self) -> bool {
+        f32::is_nan(*self)
+    }
+}
+impl IsNaN for f64 {
+    fn is_nan(&self) -> bool {
+        f64::is_nan(*self)
+    }
 }
 
 /// Marker trait for types that can be NaN.
@@ -144,16 +129,5 @@ macro_rules! impl_non_float_inf_checks {
     };
 }
 
-impl_is_nan_float!(f32, f64);
-impl_is_nan_non_float!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
-
-impl<T: IsNaN> IsNaN for Option<T> {
-    fn is_nan(&self) -> bool {
-        match self {
-            Some(v) => v.is_nan(),
-            None => false,
-        }
-    }
-}
 impl_float_values!(f32, f64);
 impl_non_float_inf_checks!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
