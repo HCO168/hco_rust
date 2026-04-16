@@ -11,15 +11,6 @@ keywords = ["math", "interval", "utils", "fraction","traits"] # 搜索关键词
 categories = ["algorithms", "data-structures","mathematics"]  # crates.io 分类
 
 
-include = [
-    "Cargo.toml",
-    "README.md",
-    "LICENSE",
-    "src/lib.rs",
-    #ok to publish:
-    "src/**"
-]
-
 
 [lib]
 name = "lib"
