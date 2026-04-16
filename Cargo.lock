@@ -4,4 +4,4 @@ version = 4
 
 [[package]]
 name = "lib"
-version = "0.0.2-build"
+version = "0.0.2-beta"

@@ -1,14 +1,14 @@
 [package]
 name = "lib"
-version = "0.0.2-build"
+version = "0.0.2-beta"
 edition = "2024"
 description = "LIB: Math and container utilities for Rust. Notice: study purpose, not production ready."
-license = "MIT OR Apache-2.0"
+license = "Apache-2.0"
 repository = "https://github.com/HCO168/hco_rust"
-documentation = "https://docs.rs/hco" # docs.rs 自动文档
+documentation = "https://docs.rs/lib" # docs.rs 自动文档
 readme = "README.md"
-keywords = ["math", "interval", "utils", "fraction"] # 搜索关键词
-categories = ["algorithms", "data-structures"]  # crates.io 分类
+keywords = ["math", "interval", "utils", "fraction","traits"] # 搜索关键词
+categories = ["algorithms", "data-structures","mathematics"]  # crates.io 分类
 
 
 include = [
@@ -27,8 +27,15 @@ path = "src/lib.rs"
 
 [dependencies]
 
+
 [features]
-default = ["math","data","ntr_lang"]
-data = []
-math = ["data"]
-ntr_lang=["math","data"]
+default = []
+specialization=[]
+
+[package.metadata.docs.rs]
+default-target = "x86_64-apple-darwin"
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "x86_64-pc-windows-msvc",
+]

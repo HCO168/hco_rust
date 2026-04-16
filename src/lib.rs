@@ -1,20 +1,17 @@
 #![allow(unused_parens)]
 #![allow(dead_code)]
+#![feature(min_specialization)]
 //re-exports
 
-#[cfg(feature = "math")]
-mod math;
-#[cfg(feature = "data")]
-mod data;
-#[cfg(feature = "ntr_lang")]
-mod ntr_lang;
-mod tool;
+pub mod math;
+pub mod datas;
+pub mod ntr_lang;
+pub mod tool;
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Neg;
-
     #[test]
     fn it_works() {
+
     }
 }
