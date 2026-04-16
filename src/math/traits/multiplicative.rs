@@ -1,11 +1,16 @@
-pub trait MultId {
-    const ONE:Self;
+pub trait MulId {
+    const ONE: Self;
 }
-///Implementation of MultID for basic types
+
+/// Backward-compatible alias for old naming.
+pub trait MultId: MulId {}
+impl<T: MulId> MultId for T {}
+
+/// Implementation of MulId for basic types.
 macro_rules! impl_mult_id_int {
     ($($t:ty),*$(,)?) => {
         $(
-            impl MultId for $t {
+            impl MulId for $t {
                 const ONE: $t = 1;
             }
         )*
@@ -14,7 +19,7 @@ macro_rules! impl_mult_id_int {
 macro_rules! impl_mult_id_float {
     ($($t:ty),*$(,)?) => {
         $(
-            impl MultId for $t {
+            impl MulId for $t {
                 const ONE: $t = 1.0;
             }
         )*
@@ -39,5 +44,4 @@ macro_rules! impl_recip_float{
     )
 }
 impl_recip_float!(f32, f64);
-
 

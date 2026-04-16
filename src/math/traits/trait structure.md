@@ -1,23 +1,37 @@
 # The trait structure for Numberoid
 
 # Compare
+(mod: cmp)
 
-## NaN
+## NonCmp
 
-**IsNaN** 
-(include a function identifying NaN, the value where x != x)
-* auto impl for T: NeverNaN
-* auto impl for T: MaybeNaN
+### NonCmpPair
 
-**MaybeNaN** 
-(marker for types that can actually be NaN)
-* fn is_nan(&self) -> bool, which will be forwarded to IsNaN
-* auto impl is_nan for T: PartialEq
+**IsNonCmpPair: PartialOrd**
+(includes a function identifying non-comparable values)
+* auto impl for T: NeverNonCmpPair
+* auto impl for T: MaybeNonCmpPair
 
-**NeverNaN** 
-(marker for types that can't be NaN)
-* in practice not overlapping with MaybeNaN
-* fn is_nan(&self) -> bool, which will always return false
+**MaybeNonCmpPair: PartialEq**
+(marker for types that can actually have non-comparable values)
+
+**NeverNonCmpPair: Eq**
+(marker for types that do not have non-comparable values)
+* in practice not overlapping with MaybeNonCmpPair
+
+### NonCmpValue
+
+**IsNonCmpValue: PartialEq**
+(includes a function identifying single non-comparable value)
+* auto impl for T: NeverNonCmpValue
+* auto impl for T: MaybeNonCmpValue
+
+**MaybeNonCmpValue: PartialEq**
+(marker for types that can actually be non-comparable)
+
+**NeverNonCmpValue: Eq**
+(marker for types that can't be non-comparable)
+* in practice not overlapping with MaybeNonCmpValue
 
 ## Min/Max
 
@@ -38,6 +52,7 @@ less and equal/greater and equal than numbers of the same type)
 # Constants
 
 ## Type Expressiveness
+(mod: constants)
 
 ### Finite boundaries
 
@@ -65,16 +80,19 @@ less and equal/greater and equal than numbers of the same type)
 ## Arithmetic Constants
 
 ### AddId
+(mod: additive)
 
 **AddId**
 (identity for addition, aka zero)
 
 ### MulId
+(mod: multiplicative)
 
 **MulId**
 (identity for multiplication, aka one)
 
 # Signs
+(mod sign)
 
 ## Check Sign
 
@@ -82,7 +100,7 @@ less and equal/greater and equal than numbers of the same type)
 (enum representing the sign of a number)
 
 **HasPartialSign: PartialOrd**
-(provides the sign of a number, return None if NaN)
+(provides the sign of a number, return None if non cmp to zero)
 
 **HasSign: HasPartialSign+Ord**
 (provides the sign of a number)
@@ -106,6 +124,7 @@ less and equal/greater and equal than numbers of the same type)
 * in practice not overlapping with *Signed*
 
 # Integer/Float
+(mod categories)
 
 ## Marker traits
 **Integer**
@@ -128,4 +147,26 @@ to make a++>**b**>a happening)
 **Dec**
 (decrement, similar to **Inc** but in reverse)
 
+# NaN
+(mod: nan)
 
+## CheckNaN
+
+**IsNaN**
+(include a function identifying NaN)
+* auto impl for T: NeverNaN
+* auto impl for T: MaybeNaN
+
+## Marker traits
+
+**MaybeNaN**
+(trait for types that can actually be NaN)
+
+**NeverNaN**
+(marker for types that can't be NaN)
+* in practice not overlapping with MaybeNaN
+
+## NaN Constants
+ 
+**NaN**
+(constant for NaN)

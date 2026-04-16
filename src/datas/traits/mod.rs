@@ -1,2 +1,4 @@
 pub mod set;
-mod bitmap;
+pub mod bitmap;
+
+pub use set::*;

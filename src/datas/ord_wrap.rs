@@ -1,7 +1,7 @@
 ﻿use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
-use crate::math::traits::floatoid::IsNaN;
+use crate::math::traits::nan::IsNaN;
 
 #[derive(Debug, Clone, Copy, PartialEq,PartialOrd)]
 pub struct Ordered<T>(T)

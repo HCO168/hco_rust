@@ -1,4 +1,4 @@
-﻿pub mod fraction;
+pub mod fraction;
 pub mod traits;
 pub mod vector;
 pub mod complex;
