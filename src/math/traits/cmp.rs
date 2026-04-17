@@ -14,8 +14,9 @@ pub trait IsNonCmpPair: PartialOrd {
     }
 }
 
+#[cfg(not(feature = "specialization"))]
 impl<T: PartialOrd> IsNonCmpPair for T {
-    default fn is_non_cmp_pair(&self, other: &Self) -> bool {
+    fn is_non_cmp_pair(&self, other: &Self) -> bool {
         self.partial_cmp(other).is_none()
     }
 }
@@ -36,8 +37,9 @@ pub trait IsNonCmpValue: PartialEq {
     }
 }
 
+#[cfg(not(feature = "specialization"))]
 impl<T: PartialEq> IsNonCmpValue for T {
-    default fn is_non_cmp_value(&self) -> bool {
+    fn is_non_cmp_value(&self) -> bool {
         self != self
     }
 }
@@ -47,24 +49,42 @@ impl MaybeNonCmpPair for f64 {}
 impl MaybeNonCmpValue for f32 {}
 impl MaybeNonCmpValue for f64 {}
 
+#[cfg(feature = "specialization")]
+impl<T: PartialOrd> IsNonCmpPair for T {
+    default fn is_non_cmp_pair(&self, other: &Self) -> bool {
+        self.partial_cmp(other).is_none()
+    }
+}
+
+#[cfg(feature = "specialization")]
+impl<T: PartialEq> IsNonCmpValue for T {
+    default fn is_non_cmp_value(&self) -> bool {
+        self != self
+    }
+}
+
+#[cfg(feature = "specialization")]
 impl IsNonCmpPair for f32 {
     fn is_non_cmp_pair(&self, other: &Self) -> bool {
         self.partial_cmp(other).is_none()
     }
 }
 
+#[cfg(feature = "specialization")]
 impl IsNonCmpPair for f64 {
     fn is_non_cmp_pair(&self, other: &Self) -> bool {
         self.partial_cmp(other).is_none()
     }
 }
 
+#[cfg(feature = "specialization")]
 impl IsNonCmpValue for f32 {
     fn is_non_cmp_value(&self) -> bool {
         f32::is_nan(*self)
     }
 }
 
+#[cfg(feature = "specialization")]
 impl IsNonCmpValue for f64 {
     fn is_non_cmp_value(&self) -> bool {
         f64::is_nan(*self)
