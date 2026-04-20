@@ -8,8 +8,6 @@ pub mod num_theory;
 pub use self::traits::*;
 pub use self::fraction::*;
 pub use self::vector::*;
-pub use self::complex::*;
 pub use self::digits::*;
-pub use self::matrix::*;
 pub use self::num_theory::*;
 

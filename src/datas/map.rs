@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, HashMap};
-use std::ops::Index;
 
 pub trait Map<K,V>{
     fn get(&self, key: &K) -> Option<&V>;

@@ -117,7 +117,7 @@ impl Digits{
     pub fn from_u64(mut value:u64, max_digit:u8) -> Digits{
         let mut digits=Digits::new(max_digit);
         while(value>0){
-            digits.append((value % max_digit as u64) as u8);
+            let _ = digits.append((value % max_digit as u64) as u8);
             value/=max_digit as u64;
         }
         digits

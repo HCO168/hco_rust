@@ -1,4 +1,3 @@
-use std::ops::Index;
 
 ///Index Protector for arrays when out of bound
 pub enum ProtectStrategy<V> {

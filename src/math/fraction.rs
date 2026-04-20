@@ -1,6 +1,6 @@
 ﻿use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
-use crate::math::num_theory::{gcd, gcd_euclid_iterative};
-use crate::math::traits::{Abs, AddId, HasPartialSign, HasSign, Sign};
+use crate::math::num_theory::gcd_euclid_iterative;
+use crate::math::traits::{Abs, AddId, HasPartialSign};
 
 #[derive(Debug, Copy, Clone, Hash)]
 pub struct Fraction<T> {
