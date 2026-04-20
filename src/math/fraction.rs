@@ -1,7 +1,6 @@
 ﻿use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
-use std::process::Output;
 use crate::math::num_theory::{gcd, gcd_euclid_iterative};
-use crate::math::traits::additive::{Abs, AddId, HasPartialSign, HasSign, Sign};
+use crate::math::traits::{Abs, AddId, HasPartialSign, HasSign, Sign};
 
 #[derive(Debug, Copy, Clone, Hash)]
 pub struct Fraction<T> {
@@ -103,12 +102,23 @@ impl<T:PartialOrd+AddId+Mul<Output=T>+Sub<Output=T> + HasPartialSign> PartialOrd
         Some(self.p.partial_cmp(&other.p).unwrap_or(std::cmp::Ordering::Equal))
     }
 }
-impl Fraction<i64> {
-    pub fn to_f64(&self) -> f64 {
-        self.p as f64 / self.q as f64
-    }
+#[macro_export]
+macro_rules! impl_fraction_into_primitive {
+    ($($to:ty),* $(,)?) => {
+        $(
+            impl<T: Into<$to>> From<Fraction<T>> for $to {
+                fn from(value: Fraction<T>) -> Self {
+                    Into::<$to>::into(value.p) / Into::<$to>::into(value.q)
+                }
+            }
 
-    pub fn to_i64(&self) -> i64 {
-        self.p / self.q
-    }
+            impl<T: Into<$to> + Copy> From<&Fraction<T>> for $to {
+                fn from(value: &Fraction<T>) -> Self {
+                    Into::<$to>::into(value.p) / Into::<$to>::into(value.q)
+                }
+            }
+        )*
+    };
 }
+
+impl_fraction_into_primitive!(f64,f32);

@@ -7,6 +7,7 @@ pub mod math;
 pub mod datas;
 pub mod ntr_lang;
 pub mod tool;
+mod traits;
 
 #[cfg(test)]
 mod tests {

@@ -1,5 +1,5 @@
 use std::ops::{Add, Div, Sub};
-use crate::math::traits::multiplicative::MulId;
+use crate::math::traits::mul::MulId;
 
 /// Marker trait for integer types.
 pub trait Integer {}

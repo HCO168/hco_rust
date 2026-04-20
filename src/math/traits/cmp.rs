@@ -353,3 +353,40 @@ macro_rules! impl_min_max_float {
 
 impl_min_max_ord!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
 impl_min_max_float!(f32, f64);
+
+#[macro_export]
+macro_rules! min {
+    ($first:expr $(,)?) => {{
+        $first
+    }};
+    ($first:expr, $($rest:expr),+ $(,)?) => {{
+        let mut acc = $first;
+        $(
+            acc = $crate::math::traits::cmp::MinMax::min(acc, $rest);
+        )+
+        acc
+    }};
+}
+
+#[macro_export]
+macro_rules! max {
+    ($first:expr $(,)?) => {{
+        $first
+    }};
+    ($first:expr, $($rest:expr),+ $(,)?) => {{
+        let mut acc = $first;
+        $(
+            acc = $crate::math::traits::cmp::MinMax::max(acc, $rest);
+        )+
+        acc
+    }};
+}
+#[cfg(test)]
+mod test{
+    fn test_min_macro_0(){
+        assert_eq!(min!(3.0f32, 2.0, 5.0, 1.0), 1.0);
+    }
+    fn test_max_macro_0(){
+        assert_eq!(max!(3.0f32, 2.0, 5.0, 1.0), 5.0);
+    }
+}

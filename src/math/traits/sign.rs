@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::ops::Neg;
 
-use crate::math::traits::additive::AddId;
+use crate::math::traits::add::AddId;
 
 #[repr(i8)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Debug)]
@@ -27,6 +27,26 @@ impl From<Sign> for Ordering {
             Sign::Negative => Ordering::Less,
             Sign::Zero => Ordering::Equal,
             Sign::Positive => Ordering::Greater,
+        }
+    }
+}
+impl From<Sign> for i8 {
+    fn from(value: Sign) -> Self {
+        match value {
+            Sign::Negative => -1,
+            Sign::Zero => 0,
+            Sign::Positive => 1,
+        }
+    }
+}
+impl From<i8> for Sign{
+    fn from(value: i8) -> Self {
+        if value < 0 {
+            Sign::Negative
+        }else if value == 0 {
+            Sign::Zero
+        }else{
+            Sign::Positive
         }
     }
 }

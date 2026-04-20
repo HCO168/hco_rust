@@ -1,5 +1,5 @@
 use std::ops::Rem;
-use crate::math::traits::additive::{Abs, AddId, HasPartialSign};
+use crate::math::traits::{Abs, AddId, HasPartialSign};
 
 pub fn gcd_euclid_recursive<T>(a: T, b: T) -> T
     where
