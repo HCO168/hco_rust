@@ -1,4 +1,5 @@
-﻿use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+﻿use std::fmt::{Display, Formatter};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use crate::math::num_theory::gcd_euclid_iterative;
 use crate::math::traits::{Abs, AddId, HasPartialSign};
 
@@ -9,9 +10,6 @@ pub struct Fraction<T> {
 }
 
 impl<T> Fraction<T> {
-    pub const fn new(numerator: T, denominator: T) -> Self {
-        Self {p:numerator, q:denominator }
-    }
     pub fn numerator(&self) -> &T {
         &self.p
     }
@@ -20,6 +18,10 @@ impl<T> Fraction<T> {
     }
 }
 impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign> Fraction<T> {
+    pub fn new(numerator: T, denominator: T) -> Self {
+        Self::save_new(numerator, denominator)
+    }
+
     pub fn save_new(numerator: T, denominator: T) -> Self {
         if denominator.is_zero() {
             panic!("Denominator cannot be zero.");
@@ -45,12 +47,12 @@ impl<T: Abs<Output = T>> Abs for Fraction<T> {
         }
     }
 }
-impl<T:Mul<Output=T>+Add<Output=T> + Clone> Add for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+Add<Output=T>> Add for Fraction<T> {
     type Output = Self;
     fn add(self, other: Self) -> Self::Output {
         let num = self.p * other.q.clone() + other.p * self.q.clone();
         let den = self.q * other.q;
-        Self::new(num, den)
+        Self::save_new(num, den)
     }
 }
 
@@ -63,43 +65,53 @@ impl<T:Neg<Output = T>> Neg for Fraction<T> {
         }
     }
 }
-impl<T:Sub<Output = T>+Mul<Output=T> + Clone> Sub for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Sub<Output = T>+Mul<Output=T>> Sub for Fraction<T> {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
         let num = self.p * other.q.clone() - other.p * self.q.clone();
         let den = self.q * other.q;
-        Self::new(num, den)
+        Self::save_new(num, den)
     }
 }
-impl<T:Mul<Output=T>> Mul for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>> Mul for Fraction<T> {
     type Output = Self;
     fn mul(self, other: Self) -> Self::Output {
         let num = self.p * other.p;
         let den = self.q * other.q;
-        Self::new(num, den)
+        Self::save_new(num, den)
     }
 }
-impl<T:Mul<Output=T>+PartialEq+AddId> Div for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+PartialEq> Div for Fraction<T> {
     type Output = Self;
     fn div(self, other: Self) -> Self::Output {
+        if other.p == T::ZERO {
+            panic!("Division by zero fraction.");
+        }
         let num = self.p * other.q;
         let den = self.q * other.p;
-        Self::new(num, den)
+        Self::save_new(num, den)
     }
 }
 
-impl<T: PartialOrd + AddId> PartialEq<Self> for Fraction<T> {
+impl<T: PartialEq> PartialEq<Self> for Fraction<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.p == other.p
+        self.p == other.p && self.q == other.q
     }
 }
-impl<T:PartialOrd+AddId> Eq for Fraction<T> {}
-impl<T:PartialOrd+AddId+Mul<Output=T>+Sub<Output=T> + HasPartialSign> PartialOrd for Fraction<T> {
+impl<T: Eq> Eq for Fraction<T> {}
+impl<T: PartialOrd + Mul<Output = T> + Clone + HasPartialSign> PartialOrd for Fraction<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if(self.q.is_zero()||other.q.is_zero()){
+        if self.q.is_zero() || other.q.is_zero() {
             return None;
         }
-        Some(self.p.partial_cmp(&other.p).unwrap_or(std::cmp::Ordering::Equal))
+        let left = self.p.clone() * other.q.clone();
+        let right = other.p.clone() * self.q.clone();
+        left.partial_cmp(&right)
+    }
+}
+impl<T:Display> Display for Fraction<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{}/{}", self.p, self.q))
     }
 }
 #[macro_export]
@@ -120,5 +132,4 @@ macro_rules! impl_fraction_into_primitive {
         )*
     };
 }
-
 impl_fraction_into_primitive!(f64,f32);

@@ -1,4 +1,49 @@
-use crate::math::traits::cmp::{MaxValue, MinValue};
+
+
+pub trait MinValue {
+    const MIN: Self;
+}
+
+pub trait MaxValue {
+    const MAX: Self;
+}
+
+pub trait IsMinValue: MinValue + PartialEq {
+    fn is_min_value(&self) -> bool
+    where
+        Self: Sized,
+    {
+        self.eq(&Self::MIN)
+    }
+}
+
+pub trait IsMaxValue: MaxValue + PartialEq {
+    fn is_max_value(&self) -> bool
+    where
+        Self: Sized,
+    {
+        self.eq(&Self::MAX)
+    }
+}
+
+macro_rules! impl_min_max_value {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl MinValue for $t {
+                const MIN: Self = <$t>::MIN;
+            }
+
+            impl MaxValue for $t {
+                const MAX: Self = <$t>::MAX;
+            }
+        )*
+    };
+}
+
+impl_min_max_value!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
+impl<T: MinValue + PartialEq> IsMinValue for T {}
+impl<T: MaxValue + PartialEq> IsMaxValue for T {}
+
 
 pub trait MinFiniteValue {
     const MIN_FINITE: Self;

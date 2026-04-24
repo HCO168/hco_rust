@@ -64,3 +64,19 @@ macro_rules! impl_non_integer_markers {
 
 impl_integer_markers!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
 impl_non_integer_markers!(f32, f64);
+
+pub trait TrailingZeros{
+    fn trailing_zeros(self) -> usize;
+}
+macro_rules! impl_trailing_zeros {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl TrailingZeros for $t {
+                fn trailing_zeros(self) -> usize {
+                    Self::trailing_zeros(self) as usize
+                }
+            }
+        )*
+    }
+}
+impl_trailing_zeros!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
