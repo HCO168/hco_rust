@@ -1,4 +1,5 @@
-use std::ops::{Add, Div, Sub};
+use std::ops::{Add, Div, Rem, Sub};
+use crate::math::{gcd_euclid_iterative, gcd_stein, Abs, AddId, HasPartialSign};
 use crate::math::traits::mul::MulId;
 
 /// Marker trait for integer types.
@@ -80,3 +81,40 @@ macro_rules! impl_trailing_zeros {
     }
 }
 impl_trailing_zeros!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+pub trait LeadingZeros{
+    fn leading_zeros(self) -> usize;
+}
+macro_rules! impl_leading_zeros {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl LeadingZeros for $t {
+                fn leading_zeros(self) -> usize {
+                    Self::leading_zeros(self) as usize
+                }
+            }
+        )*
+    }
+}
+impl_leading_zeros!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+pub trait GCD{
+    fn gcd(self, other: Self) -> Self;
+}
+macro_rules! impl_gcd_by_fn {
+    ($f:path => $($t:ty),* $(,)?) => {
+        $(
+            impl GCD for $t {
+                fn gcd(self, other: Self) -> Self {
+                    $f(self, other)
+                }
+            }
+        )*
+    };
+}
+impl_gcd_by_fn!(gcd_stein=>i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+impl_gcd_by_fn!(gcd_euclid_iterative=>f32, f64);
+#[cfg(feature = "specialization")]
+impl<T:AddId+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone + HasPartialSign> GCD for T{
+    default fn gcd(self, other: Self) -> Self {
+        gcd_euclid_iterative(self,other)
+    }
+}

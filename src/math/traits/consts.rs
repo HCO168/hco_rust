@@ -98,6 +98,12 @@ pub trait IsNegInf {
         !self.is_neg_inf()
     }
 }
+pub trait IsInf: IsPosInf + IsNegInf {
+    fn is_inf(&self) -> bool;
+    fn not_inf(&self) -> bool {
+        !self.is_inf()
+    }
+}
 
 pub trait MinPositiveValue {
     const MIN_POSITIVE: Self;
@@ -177,7 +183,11 @@ impl<T: PartialEq + NegInf> IsNegInf for T {
         self == &Self::NEG_INF
     }
 }
-
+impl<T:IsPosInf + IsNegInf> IsInf for T {
+    fn is_inf(&self) -> bool {
+        self.is_pos_inf() || self.is_neg_inf()
+    }
+}
 impl<T: PartialEq + MinPositiveValue> IsMinPositiveValue for T {
     fn is_min_positive_value(&self) -> bool {
         self == &Self::MIN_POSITIVE

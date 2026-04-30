@@ -2,24 +2,21 @@
 pub trait MaybeNonCmpPair: PartialEq {}
 
 /// Marker trait for types that do not have pairwise non-comparable values.
-pub trait NeverNonCmpPair: Eq {}
-impl<T: Eq> NeverNonCmpPair for T {}
+pub trait NeverNonCmpPair: Ord {}
+impl<T: Ord> NeverNonCmpPair for T {}
 
 /// Identify whether two values are non-comparable as a pair.
 pub trait IsNonCmpPair: PartialOrd {
-    fn is_non_cmp_pair(&self, other: &Self) -> bool;
+    fn is_non_cmp_pair(&self, other: &Self) -> bool {
+        self.partial_cmp(other).is_none()
+    }
 
     fn is_cmp_pair(&self, other: &Self) -> bool {
         !self.is_non_cmp_pair(other)
     }
 }
 
-#[cfg(not(feature = "specialization"))]
-impl<T: PartialOrd> IsNonCmpPair for T {
-    fn is_non_cmp_pair(&self, other: &Self) -> bool {
-        self.partial_cmp(other).is_none()
-    }
-}
+impl<T: PartialOrd> IsNonCmpPair for T {}
 
 /// Marker trait for types that may contain single non-comparable values.
 pub trait MaybeNonCmpValue: PartialEq {}
@@ -30,66 +27,21 @@ impl<T: Eq> NeverNonCmpValue for T {}
 
 /// Identify whether a single value is a non-comparable value.
 pub trait IsNonCmpValue: PartialEq {
-    fn is_non_cmp_value(&self) -> bool;
+    fn is_non_cmp_value(&self) -> bool {
+        self != self
+    }
 
     fn is_cmp_value(&self) -> bool {
         !self.is_non_cmp_value()
     }
 }
 
-#[cfg(not(feature = "specialization"))]
-impl<T: PartialEq> IsNonCmpValue for T {
-    fn is_non_cmp_value(&self) -> bool {
-        self != self
-    }
-}
+impl<T: PartialEq> IsNonCmpValue for T {}
 
 impl MaybeNonCmpPair for f32 {}
 impl MaybeNonCmpPair for f64 {}
 impl MaybeNonCmpValue for f32 {}
 impl MaybeNonCmpValue for f64 {}
-
-#[cfg(feature = "specialization")]
-impl<T: PartialOrd> IsNonCmpPair for T {
-    default fn is_non_cmp_pair(&self, other: &Self) -> bool {
-        self.partial_cmp(other).is_none()
-    }
-}
-
-#[cfg(feature = "specialization")]
-impl<T: PartialEq> IsNonCmpValue for T {
-    default fn is_non_cmp_value(&self) -> bool {
-        self != self
-    }
-}
-
-#[cfg(feature = "specialization")]
-impl IsNonCmpPair for f32 {
-    fn is_non_cmp_pair(&self, other: &Self) -> bool {
-        self.partial_cmp(other).is_none()
-    }
-}
-
-#[cfg(feature = "specialization")]
-impl IsNonCmpPair for f64 {
-    fn is_non_cmp_pair(&self, other: &Self) -> bool {
-        self.partial_cmp(other).is_none()
-    }
-}
-
-#[cfg(feature = "specialization")]
-impl IsNonCmpValue for f32 {
-    fn is_non_cmp_value(&self) -> bool {
-        f32::is_nan(*self)
-    }
-}
-
-#[cfg(feature = "specialization")]
-impl IsNonCmpValue for f64 {
-    fn is_non_cmp_value(&self) -> bool {
-        f64::is_nan(*self)
-    }
-}
 pub trait MinMax: PartialOrd + IsNonCmpValue {
     fn min(self, other: Self) -> Self
     where
@@ -106,7 +58,6 @@ pub trait MinMax: PartialOrd + IsNonCmpValue {
             }
         }
     }
-
     fn max(self, other: Self) -> Self
     where
         Self: Sized,
@@ -122,7 +73,6 @@ pub trait MinMax: PartialOrd + IsNonCmpValue {
             }
         }
     }
-
     fn clamp(self, min: Self, max: Self) -> Self
     where
         Self: Sized,
@@ -153,40 +103,7 @@ pub trait MinMax: PartialOrd + IsNonCmpValue {
             self
         }
     }
-
-    fn min_opt(self, other: Option<Self>) -> Option<Self>
-    where
-        Self: Sized,
-    {
-        match other {
-            Some(v) => Some(self.min(v)),
-            None => None,
-        }
-    }
-
-    fn max_opt(self, other: Option<Self>) -> Option<Self>
-    where
-        Self: Sized,
-    {
-        match other {
-            Some(v) => Some(self.max(v)),
-            None => None,
-        }
-    }
-
-    fn clamp_opt(self, min: Option<Self>, max: Option<Self>) -> Option<Self>
-    where
-        Self: Sized,
-    {
-        match (min, max) {
-            (Some(min_v), Some(max_v)) => Some(self.clamp(min_v, max_v)),
-            (Some(min_v), None) => Some(self.max(min_v)),
-            (None, Some(max_v)) => Some(self.min(max_v)),
-            (None, None) => Some(self),
-        }
-    }
 }
-
 impl<T: MinMax> MinMax for Option<T> {
     fn min(self, other: Option<T>) -> Option<T> {
         match (self, other) {
@@ -208,7 +125,12 @@ impl<T: MinMax> MinMax for Option<T> {
 
     fn clamp(self, min: Option<T>, max: Option<T>) -> Option<T> {
         match self {
-            Some(v) => MinMax::clamp_opt(v, min, max),
+            Some(v) => match (min, max) {
+                (Some(min_v), Some(max_v)) => Some(v.clamp(min_v, max_v)),
+                (Some(min_v), None) => Some(v.max(min_v)),
+                (None, Some(max_v)) => Some(v.min(max_v)),
+                (None, None) => Some(v),
+            },
             None => match (min, max) {
                 (Some(min_v), None) => Some(min_v),
                 (None, Some(max_v)) => Some(max_v),
@@ -331,7 +253,7 @@ macro_rules! max {
     ($first:expr, $($rest:expr),+ $(,)?) => {{
         let mut acc = $first;
         $(
-            acc = $crate::math::traits::cmp::MinMax::max(acc, $rest);
+            acc = $crate::math::traits::MinMax::max(acc, $rest);
         )+
         acc
     }};

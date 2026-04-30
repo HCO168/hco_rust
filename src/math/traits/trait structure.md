@@ -12,10 +12,10 @@
 * auto impl for T: NeverNonCmpPair
 * auto impl for T: MaybeNonCmpPair
 
-**MaybeNonCmpPair: PartialEq**
+**MaybeNonCmpPair: PartialOrd**
 (marker for types that can actually have non-comparable values)
 
-**NeverNonCmpPair: Eq**
+**NeverNonCmpPair: Ord**
 (marker for types that do not have non-comparable values)
 * in practice not overlapping with MaybeNonCmpPair
 
@@ -82,14 +82,26 @@ less and equal/greater and equal than numbers of the same type)
 ### AddId
 (mod: additive)
 
+**ConstAddId**
+(constant for additive identity)
+
 **AddId**
 (identity for addition, aka zero)
+
+**IsAddId**
+(checks whether the value is additive identity)
 
 ### MulId
 (mod: multiplicative)
 
+**ConstMulId**
+(constant for multiplicative identity)
+
 **MulId**
 (identity for multiplication, aka one)
+
+**IsMulId**
+(checks whether the value is multiplicative identity)
 
 # Signs
 (mod sign)

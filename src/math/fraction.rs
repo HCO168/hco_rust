@@ -1,30 +1,38 @@
-﻿use std::fmt::{Display, Formatter};
+﻿use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use crate::math::{IsAddId, NaN, NegInf, NegMulId, PosInf, Sign, GCD};
 use crate::math::num_theory::gcd_euclid_iterative;
-use crate::math::traits::{Abs, AddId, HasPartialSign};
+use crate::math::traits::{Abs, AddId, HasPartialSign,IsNaN, Signum,MulId};
 
 #[derive(Debug, Copy, Clone, Hash)]
 pub struct Fraction<T> {
     p: T, //numerator
     q: T, //denominator
 }
-
 impl<T> Fraction<T> {
+    #[inline]
     pub fn numerator(&self) -> &T {
         &self.p
     }
+    #[inline]
     pub fn denominator(&self) -> &T {
         &self.q
     }
-}
-impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign> Fraction<T> {
-    pub fn new(numerator: T, denominator: T) -> Self {
-        Self::save_new(numerator, denominator)
+    /** Using this function may make calculations slower significantly since it does not simplify the fraction.*/
+    pub const fn raw_new(numerator: T, denominator: T) -> Self {
+        Self { p:numerator, q:denominator }
     }
-
-    pub fn save_new(numerator: T, denominator: T) -> Self {
+}
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Signum+GCD>
+Fraction<T> {
+    pub fn new(numerator: T, denominator: T) -> Self {
         if denominator.is_zero() {
-            panic!("Denominator cannot be zero.");
+            // Follow floating-like semantics:
+            // - non-zero / 0 => +/-Inf (sign comes from numerator)
+            // - 0 / 0 => NaN
+            // any argument is NaN => NaN
+            return Self { p: numerator, q: denominator.signum()};
         }
         let gcd = gcd_euclid_iterative(numerator.clone().abs(), denominator.clone().abs());
         let mut p:T = numerator / gcd.clone();
@@ -37,7 +45,8 @@ impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Ou
         Self { p, q }
     }
 }
-impl<T: Abs<Output = T>> Abs for Fraction<T> {
+impl<T: Abs<Output = T>>
+Abs for Fraction<T> {
     type Output = Self;
 
     fn abs(self) -> Self::Output {
@@ -47,16 +56,24 @@ impl<T: Abs<Output = T>> Abs for Fraction<T> {
         }
     }
 }
-impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+Add<Output=T>> Add for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+Add<Output=T>+Signum+GCD>
+Add for Fraction<T> {
     type Output = Self;
     fn add(self, other: Self) -> Self::Output {
+        if(self.is_nan() || other.is_nan()){
+            return Self::NAN;
+        }
+        if(self.q==other.q){
+            return Self::new(self.p+other.p,self.q);
+        }
         let num = self.p * other.q.clone() + other.p * self.q.clone();
         let den = self.q * other.q;
-        Self::save_new(num, den)
+        Self::new(num, den)
     }
 }
 
-impl<T:Neg<Output = T>> Neg for Fraction<T> {
+impl<T:Neg<Output = T>>
+Neg for Fraction<T> {
     type Output = Self;
     fn neg(self) -> Self::Output {
         Self {
@@ -65,55 +82,174 @@ impl<T:Neg<Output = T>> Neg for Fraction<T> {
         }
     }
 }
-impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Sub<Output = T>+Mul<Output=T>> Sub for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Add<Output=T>+Mul<Output=T>+Signum+GCD>
+Sub for Fraction<T> {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
-        let num = self.p * other.q.clone() - other.p * self.q.clone();
-        let den = self.q * other.q;
-        Self::save_new(num, den)
+        self.add(-other)
     }
 }
-impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>> Mul for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+Signum+GCD>
+Mul for Fraction<T> {
     type Output = Self;
     fn mul(self, other: Self) -> Self::Output {
+        if(self.is_nan() || other.is_nan()){
+            return Self::NAN;
+        }
         let num = self.p * other.p;
         let den = self.q * other.q;
-        Self::save_new(num, den)
+        Self::new(num, den)
     }
 }
-impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+PartialEq> Div for Fraction<T> {
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+PartialEq+Signum+GCD>
+Div for Fraction<T> {
     type Output = Self;
     fn div(self, other: Self) -> Self::Output {
-        if other.p == T::ZERO {
-            panic!("Division by zero fraction.");
+        if(self.is_nan() || other.is_nan()){
+            return Self::NAN;
         }
-        let num = self.p * other.q;
-        let den = self.q * other.p;
-        Self::save_new(num, den)
+        self * Self::new(other.q, other.p)
     }
 }
 
-impl<T: PartialEq> PartialEq<Self> for Fraction<T> {
+impl<T: PartialEq + IsAddId>
+PartialEq<Self> for Fraction<T> {
     fn eq(&self, other: &Self) -> bool {
+        // NaN semantics: NaN != NaN
+        if self.is_nan() || other.is_nan() {
+            return false;
+        }
         self.p == other.p && self.q == other.q
     }
 }
-impl<T: Eq> Eq for Fraction<T> {}
-impl<T: PartialOrd + Mul<Output = T> + Clone + HasPartialSign> PartialOrd for Fraction<T> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self.q.is_zero() || other.q.is_zero() {
-            return None;
+impl<T: PartialOrd + Mul<Output = T> + Clone + HasPartialSign>
+PartialOrd for Fraction<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if(self.q.is_zero()||other.q.is_zero()){
+            // NaN is unordered with everything.
+            if (self.q.is_zero() && self.p.is_zero()) || (other.q.is_zero() && other.p.is_zero()) {
+                return None;
+            }
+            // Infinity ordering.
+            if self.q.is_zero() && other.q.is_zero() {
+                return self.p.partial_cmp(&other.p);
+            }
+            if self.q.is_zero() {
+                return if self.p.is_positive() {
+                    Some(Ordering::Greater)
+                } else {
+                    Some(Ordering::Less)
+                };
+            }
+            if other.q.is_zero() {
+                return if other.p.is_positive() {
+                    Some(Ordering::Less)
+                } else {
+                    Some(Ordering::Greater)
+                };
+            }
         }
         let left = self.p.clone() * other.q.clone();
         let right = other.p.clone() * self.q.clone();
         left.partial_cmp(&right)
     }
 }
+impl<T:AddId+MulId> AddId for Fraction<T> {
+    const ZERO: Self =Self { p: T::ZERO, q: T::ONE };
+}
+impl<T:AddId+MulId+PartialEq+IsAddId> IsAddId for Fraction<T> {
+    fn is_zero(&self) -> bool {
+        self.p == T::ZERO && self.q != T::ZERO
+    }
+}
+impl<T:MulId> MulId for Fraction<T> {
+    const ONE: Self =Self { p: T::ONE, q: T::ONE };
+}
+impl<T:AddId> NaN for Fraction<T> {
+    const NAN: Self = Self{p: T::ZERO, q: T::ZERO};
+}
+impl<T:PartialEq+IsAddId> IsNaN for Fraction<T> {
+    fn is_nan(&self) -> bool {
+        self.q.is_zero() && self.p.is_zero()
+    }
+}
+impl<T:AddId+MulId> PosInf for Fraction<T> {
+    const POS_INF: Self = Self{p: T::ONE, q: T::ZERO};
+}
+impl<T:AddId+MulId+NegMulId> NegInf for Fraction<T> {
+    const NEG_INF: Self = Self{p: T::NEG_ONE, q: T::ZERO};
+}
 impl<T:Display> Display for Fraction<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("{}/{}", self.p, self.q))
     }
 }
+impl Fraction<i64> {
+    /// Java `constructFromDouble` style conversion:
+    /// decompose IEEE-754 bits, keep binary structure, and bound denominator shifts.
+    pub fn from_f64_binary(m: f64) -> Self {
+        if m == 0.0 {
+            return Self::raw_new(0, 1);
+        }
+        if !m.is_finite() {
+            panic!("Input used to construct Fraction<i64> from f64 must be finite. input={m}");
+        }
+
+        let bits = m.to_bits();
+        let sign_neg = (bits >> 63) != 0;
+        let exp_bits = ((bits >> 52) & 0x7ff) as i32;
+        let frac_bits = bits & ((1u64 << 52) - 1);
+
+        // significand (includes implicit leading 1 for normal numbers)
+        let mut p = if exp_bits == 0 {
+            frac_bits as i64
+        } else {
+            ((1u64 << 52) | frac_bits) as i64
+        };
+        if p == 0 {
+            return Self::raw_new(0, 1);
+        }
+
+        // remove trailing binary zeros from significand
+        p >>= p.trailing_zeros();
+
+        // unbiased exponent
+        let log2_result = if exp_bits == 0 { -1022 } else { exp_bits - 1023 };
+        let n = 64 - p.unsigned_abs().leading_zeros() as i32;
+        let mut shift = log2_result - n + 1;
+        let mut q: i64 = 1;
+
+        if shift > 0 {
+            // guard numerator overflow
+            if shift > 63 - n {
+                panic!("Input too large for Fraction<i64> numerator. input={m}");
+            }
+            p <<= shift;
+        } else if shift < 0 {
+            // bound denominator to 2^62; for tiny numbers, sacrifice precision like Java code
+            if shift < -62 {
+                p >>= -shift - 62;
+                if p == 0 {
+                    return Self::raw_new(0, 1);
+                }
+                shift = -62;
+            }
+            q <<= -shift;
+        }
+
+        if sign_neg {
+            p = -p;
+        }
+        Self::new(p, q)
+    }
+}
+
+impl From<f64> for Fraction<i64> {
+    fn from(value: f64) -> Self {
+        Fraction::<i64>::from_f64_binary(value)
+    }
+}
+
 #[macro_export]
 macro_rules! impl_fraction_into_primitive {
     ($($to:ty),* $(,)?) => {
@@ -133,3 +269,142 @@ macro_rules! impl_fraction_into_primitive {
     };
 }
 impl_fraction_into_primitive!(f64,f32);
+#[cfg(test)]
+mod test{
+    use std::f64::NAN;
+    use crate::math::{Fraction, HasPartialSign, HasSign, IsInf, NegInf, PosInf};
+
+    const TEST_VALUE_F64:[f64;6]=[f64::NEG_INF,-1.0,0.0,1.0,f64::POS_INF,NAN];
+    const TEST_VALUE_FRACTION_I64:[Fraction<i64>;6]=
+        [Fraction::raw_new(-1,0),Fraction::raw_new(-1,1),Fraction::raw_new(0,1),
+        Fraction::raw_new(1,1),Fraction::raw_new(1,0),Fraction::raw_new(0,0)];
+    fn check_equivalent(n:f64,f:Fraction<i64>)->bool{
+        n.partial_sign()==f.partial_sign()
+        &&n.is_infinite()==f.is_inf()
+    }
+    #[test]
+    fn test_fraction_floatiod_add_behavior() {
+        for i in 0..6 {
+            for j in 0..6 {
+                let n1=TEST_VALUE_F64[i];
+                let n2=TEST_VALUE_F64[j];
+                let f1=TEST_VALUE_FRACTION_I64[i];
+                let f2=TEST_VALUE_FRACTION_I64[j];
+
+                println!("n1={}, n2={}, f1={}, f2={}", n1, n2, f1, f2);
+
+                let n_add_result=n1+n2;
+                let f_add_result=f1+f2;
+                println!("n1+n2={}, f1+f2={}", n_add_result, f_add_result);
+
+                assert_eq!(
+                    n_add_result.partial_sign(),
+                    f_add_result.partial_sign(),
+                    "add sign mismatch: n1={}, n2={}, f1={}, f2={}",
+                    n1,n2,f1,f2
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_fraction_floatiod_sub_behavior() {
+        for i in 0..6 {
+            for j in 0..6 {
+                let n1=TEST_VALUE_F64[i];
+                let n2=TEST_VALUE_F64[j];
+                let f1=TEST_VALUE_FRACTION_I64[i];
+                let f2=TEST_VALUE_FRACTION_I64[j];
+
+                println!("n1={}, n2={}, f1={}, f2={}", n1, n2, f1, f2);
+
+                let n_sub_result=n1-n2;
+                let f_sub_result=f1-f2;
+                println!("n1-n2={}, f1-f2={}", n_sub_result, f_sub_result);
+
+                assert_eq!(
+                    n_sub_result.partial_sign(),
+                    f_sub_result.partial_sign(),
+                    "sub sign mismatch: n1={}, n2={}, f1={}, f2={}",
+                    n1,n2,f1,f2
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_fraction_floatiod_mul_behavior() {
+        for i in 0..6 {
+            for j in 0..6 {
+                let n1=TEST_VALUE_F64[i];
+                let n2=TEST_VALUE_F64[j];
+                let f1=TEST_VALUE_FRACTION_I64[i];
+                let f2=TEST_VALUE_FRACTION_I64[j];
+
+                println!("n1={}, n2={}, f1={}, f2={}", n1, n2, f1, f2);
+
+                let n_mult_result=n1*n2;
+                let f_mult_result=f1*f2;
+                println!("n1*n2={}, f1*f2={}", n_mult_result, f_mult_result);
+
+                assert_eq!(
+                    n_mult_result.partial_sign(),
+                    f_mult_result.partial_sign(),
+                    "mul sign mismatch: n1={}, n2={}, f1={}, f2={}",
+                    n1,n2,f1,f2
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_fraction_floatiod_div_behavior() {
+        for i in 0..6 {
+            for j in 0..6 {
+                let n1=TEST_VALUE_F64[i];
+                let n2=TEST_VALUE_F64[j];
+                let f1=TEST_VALUE_FRACTION_I64[i];
+                let f2=TEST_VALUE_FRACTION_I64[j];
+
+                println!("n1={}, n2={}, f1={}, f2={}", n1, n2, f1, f2);
+
+                let n_div_result=n1/n2;
+                let f_div_result=f1/f2;
+                println!("n1/n2={}, f1/f2={}", n_div_result, f_div_result);
+
+                assert_eq!(
+                    n_div_result.partial_sign(),
+                    f_div_result.partial_sign(),
+                    "div sign mismatch: n1={}, n2={}, f1={}, f2={}",
+                    n1,n2,f1,f2
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_fraction_floatiod_cmp_behavior() {
+        for i in 0..6 {
+            for j in 0..6 {
+                let n1=TEST_VALUE_F64[i];
+                let n2=TEST_VALUE_F64[j];
+                let f1=TEST_VALUE_FRACTION_I64[i];
+                let f2=TEST_VALUE_FRACTION_I64[j];
+
+                println!("n1={}, n2={}, f1={}, f2={}", n1, n2, f1, f2);
+                println!(
+                    "n1.partial_cmp(n2)={:?}, f1.partial_cmp(f2)={:?}",
+                    n1.partial_cmp(&n2),
+                    f1.partial_cmp(&f2)
+                );
+
+                assert_eq!(
+                    n1.partial_cmp(&n2),
+                    f1.partial_cmp(&f2),
+                    "partial_cmp mismatch: n1={}, n2={}, f1={}, f2={}",
+                    n1,n2,f1,f2
+                );
+            }
+        }
+    }
+}

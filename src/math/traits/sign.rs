@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::ops::Neg;
-
-use crate::math::traits::add::AddId;
+use crate::math::IsAddId;
+use crate::math::traits::AddId;
 
 #[repr(i8)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Debug)]
@@ -51,19 +51,14 @@ impl From<i8> for Sign{
     }
 }
 
-pub trait HasPartialSign: PartialOrd {
+pub trait HasPartialSign: PartialOrd+IsAddId {
     fn partial_sign(&self) -> Option<Sign>;
-
     fn is_positive(&self) -> bool {
         self.partial_sign() == Some(Sign::Positive)
     }
 
     fn is_negative(&self) -> bool {
         self.partial_sign() == Some(Sign::Negative)
-    }
-
-    fn is_zero(&self) -> bool {
-        self.partial_sign() == Some(Sign::Zero)
     }
 
     fn is_positive_or_zero(&self) -> bool {
@@ -85,20 +80,14 @@ pub trait HasPartialSign: PartialOrd {
     fn not_negative(&self) -> bool {
         !self.is_negative()
     }
-
-    fn not_zero(&self) -> bool {
-        !self.is_zero()
-    }
 }
 
 pub trait HasSign: HasPartialSign + Ord {
     fn sign(&self) -> Sign;
 }
-
-pub trait Signum: PartialOrd {
-    fn signum(&self) -> Self;
+pub trait Signum: PartialOrd{
+     fn signum(&self) ->Self;
 }
-
 pub trait Abs {
     type Output;
 
@@ -110,13 +99,11 @@ pub trait Unsigned {}
 
 impl<T> HasPartialSign for T
 where
-    T: PartialOrd + AddId,
+    T: PartialOrd + AddId+IsAddId,
 {
     fn partial_sign(&self) -> Option<Sign> {
         match self.partial_cmp(&T::ZERO) {
-            Some(Ordering::Less) => Some(Sign::Negative),
-            Some(Ordering::Equal) => Some(Sign::Zero),
-            Some(Ordering::Greater) => Some(Sign::Positive),
+            Some(x) => Some(x.into()),
             None => None,
         }
     }
@@ -124,10 +111,10 @@ where
 
 impl<T> HasSign for T
 where
-    T: HasPartialSign + Ord,
+    T: HasPartialSign + Ord+AddId,
 {
     fn sign(&self) -> Sign {
-        self.partial_sign().unwrap_or_else(|| todo!("HasSign called on unordered value"))
+        self.cmp(&T::ZERO).into()
     }
 }
 
