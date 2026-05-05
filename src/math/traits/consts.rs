@@ -99,7 +99,9 @@ pub trait IsNegInf {
     }
 }
 pub trait IsInf: IsPosInf + IsNegInf {
-    fn is_inf(&self) -> bool;
+    fn is_inf(&self) -> bool{
+        self.is_pos_inf()||self.is_neg_inf()
+    }
     fn not_inf(&self) -> bool {
         !self.is_inf()
     }

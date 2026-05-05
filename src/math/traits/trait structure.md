@@ -8,9 +8,13 @@
 ### NonCmpPair
 
 **IsNonCmpPair: PartialOrd**
-(includes a function identifying non-comparable values)
-* auto impl for T: NeverNonCmpPair
-* auto impl for T: MaybeNonCmpPair
+(provide function for identifying non-comparable values)
+* fn
+  * fn is_non_cmp_pair(&self) -> bool
+  * fn not_non_cmp_pair(&self) -> bool
+* auto impl for :
+  * T: NeverNonCmpPair
+  * T: MaybeNonCmpPair
 
 **MaybeNonCmpPair: PartialOrd**
 (marker for types that can actually have non-comparable values)

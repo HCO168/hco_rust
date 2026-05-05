@@ -102,7 +102,7 @@ where
     T: PartialOrd + AddId+IsAddId,
 {
     fn partial_sign(&self) -> Option<Sign> {
-        match self.partial_cmp(&T::ZERO) {
+        match self.partial_cmp(&T::zero()) {
             Some(x) => Some(x.into()),
             None => None,
         }
@@ -114,7 +114,7 @@ where
     T: HasPartialSign + Ord+AddId,
 {
     fn sign(&self) -> Sign {
-        self.cmp(&T::ZERO).into()
+        self.cmp(&T::zero()).into()
     }
 }
 
