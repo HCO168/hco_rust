@@ -3,6 +3,7 @@ pub trait MaybeNonCmpPair: PartialEq {}
 
 /// Marker trait for types that do not have pairwise non-comparable values.
 pub trait NeverNonCmpPair: Ord {}
+#[cfg(feature = "specialization")]
 impl<T: Ord> NeverNonCmpPair for T {}
 
 /// Identify whether two values are non-comparable as a pair.
@@ -16,6 +17,7 @@ pub trait IsNonCmpPair: PartialOrd {
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T: PartialOrd> IsNonCmpPair for T {}
 
 /// Marker trait for types that may contain single non-comparable values.
@@ -23,6 +25,7 @@ pub trait MaybeNonCmpValue: PartialEq {}
 
 /// Marker trait for types that do not have single non-comparable values.
 pub trait NeverNonCmpValue: Eq {}
+#[cfg(feature = "specialization")]
 impl<T: Eq> NeverNonCmpValue for T {}
 
 /// Identify whether a single value is a non-comparable value.
@@ -36,7 +39,59 @@ pub trait IsNonCmpValue: PartialEq {
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T: PartialEq> IsNonCmpValue for T {}
+
+macro_rules! impl_cmp_traits_for_primitives {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl NeverNonCmpPair for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpPair for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl NeverNonCmpValue for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpValue for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpPair for &$t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpValue for &$t {}
+        )*
+    };
+}
+
+macro_rules! impl_float_cmp_traits {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpPair for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpValue for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpPair for &$t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNonCmpValue for &$t {}
+        )*
+    };
+}
+
+impl_cmp_traits_for_primitives!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, bool, char);
+impl_float_cmp_traits!(f32, f64);
+
+#[cfg(not(feature = "specialization"))]
+impl<T: PartialEq> IsNonCmpValue for Option<T> {}
+
+#[cfg(not(feature = "specialization"))]
+impl<T: PartialOrd> IsNonCmpPair for Option<T> {}
 
 impl MaybeNonCmpPair for f32 {}
 impl MaybeNonCmpPair for f64 {}

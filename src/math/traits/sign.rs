@@ -97,26 +97,60 @@ pub trait Abs {
 pub trait Signed: Neg<Output = Self> {}
 pub trait Unsigned {}
 
+#[cfg(feature = "specialization")]
 impl<T> HasPartialSign for T
 where
     T: PartialOrd + AddId+IsAddId,
 {
     fn partial_sign(&self) -> Option<Sign> {
-        match self.partial_cmp(&T::zero()) {
+        match self.partial_cmp(&T::ZERO) {
             Some(x) => Some(x.into()),
             None => None,
         }
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T> HasSign for T
 where
     T: HasPartialSign + Ord+AddId,
 {
     fn sign(&self) -> Sign {
-        self.cmp(&T::zero()).into()
+        self.cmp(&T::ZERO).into()
     }
 }
+
+macro_rules! impl_has_partial_sign_primitive {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl HasPartialSign for $t {
+                fn partial_sign(&self) -> Option<Sign> {
+                    match self.partial_cmp(&Self::ZERO) {
+                        Some(x) => Some(x.into()),
+                        None => None,
+                    }
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! impl_has_sign_primitive {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl HasSign for $t {
+                fn sign(&self) -> Sign {
+                    self.cmp(&Self::ZERO).into()
+                }
+            }
+        )*
+    };
+}
+
+impl_has_partial_sign_primitive!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
+impl_has_sign_primitive!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
 
 macro_rules! impl_unsigned {
     ($($t:ty),* $(,)?) => {

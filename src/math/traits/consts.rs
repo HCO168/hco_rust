@@ -41,7 +41,9 @@ macro_rules! impl_min_max_value {
 }
 
 impl_min_max_value!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
+#[cfg(feature = "specialization")]
 impl<T: MinValue + PartialEq> IsMinValue for T {}
+#[cfg(feature = "specialization")]
 impl<T: MaxValue + PartialEq> IsMaxValue for T {}
 
 
@@ -123,16 +125,50 @@ pub trait IsMaxNegativeValue {
     fn is_max_negative_value(&self) -> bool;
 }
 
+#[cfg(feature = "specialization")]
 impl<T: MinValue> MinFiniteValue for T {
     const MIN_FINITE: Self = T::MIN;
 }
 
+#[cfg(feature = "specialization")]
 impl<T: MaxValue> MaxFiniteValue for T {
     const MAX_FINITE: Self = T::MAX;
 }
 
+#[cfg(feature = "specialization")]
 impl<T: MinFiniteValue + PartialEq> IsMinFiniteValue for T {}
+#[cfg(feature = "specialization")]
 impl<T: MaxFiniteValue + PartialEq> IsMaxFiniteValue for T {}
+
+macro_rules! impl_finite_value_checks {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl IsMinValue for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsMaxValue for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl MinFiniteValue for $t {
+                const MIN_FINITE: Self = <$t>::MIN;
+            }
+
+            #[cfg(not(feature = "specialization"))]
+            impl MaxFiniteValue for $t {
+                const MAX_FINITE: Self = <$t>::MAX;
+            }
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsMinFiniteValue for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsMaxFiniteValue for $t {}
+        )*
+    };
+}
+
+impl_finite_value_checks!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
 
 impl NaN for f32 {
     const NAN: Self = f32::NAN;
@@ -174,28 +210,33 @@ impl MaxNegativeValue for f64 {
     const MAX_NEGATIVE: Self = -f64::MIN_POSITIVE;
 }
 
+#[cfg(feature = "specialization")]
 impl<T: PartialEq + PosInf> IsPosInf for T {
     fn is_pos_inf(&self) -> bool {
         self == &Self::POS_INF
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T: PartialEq + NegInf> IsNegInf for T {
     fn is_neg_inf(&self) -> bool {
         self == &Self::NEG_INF
     }
 }
+#[cfg(feature = "specialization")]
 impl<T:IsPosInf + IsNegInf> IsInf for T {
     fn is_inf(&self) -> bool {
         self.is_pos_inf() || self.is_neg_inf()
     }
 }
+#[cfg(feature = "specialization")]
 impl<T: PartialEq + MinPositiveValue> IsMinPositiveValue for T {
     fn is_min_positive_value(&self) -> bool {
         self == &Self::MIN_POSITIVE
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T: PartialEq + MaxNegativeValue> IsMaxNegativeValue for T {
     fn is_max_negative_value(&self) -> bool {
         self == &Self::MAX_NEGATIVE
@@ -233,3 +274,42 @@ macro_rules! impl_false_checks {
 }
 
 impl_false_checks!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, bool, char);
+
+macro_rules! impl_float_inf_checks {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl IsPosInf for $t {
+                fn is_pos_inf(&self) -> bool {
+                    self == &Self::POS_INF
+                }
+            }
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsNegInf for $t {
+                fn is_neg_inf(&self) -> bool {
+                    self == &Self::NEG_INF
+                }
+            }
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsInf for $t {}
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsMinPositiveValue for $t {
+                fn is_min_positive_value(&self) -> bool {
+                    self == &Self::MIN_POSITIVE
+                }
+            }
+
+            #[cfg(not(feature = "specialization"))]
+            impl IsMaxNegativeValue for $t {
+                fn is_max_negative_value(&self) -> bool {
+                    self == &Self::MAX_NEGATIVE
+                }
+            }
+        )*
+    };
+}
+
+impl_float_inf_checks!(f32, f64);

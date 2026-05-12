@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use crate::math::{IsAddId, NaN, NegInf, NegMulId, PosInf, GCD};
 use crate::math::num_theory::gcd_euclid_iterative;
-use crate::math::traits::{Abs, AddId, ConstAddId, HasPartialSign,IsNaN, Signum,MulId};
+use crate::math::traits::{Abs, AddId, HasPartialSign,IsNaN, Signum,MulId};
 
 #[derive(Debug, Copy, Clone, Hash)]
 pub struct Fraction<T> {
@@ -56,7 +56,7 @@ Abs for Fraction<T> {
         }
     }
 }
-impl<T:ConstAddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+Add<Output=T>+Signum+GCD>
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Mul<Output=T>+Add<Output=T>+Signum+GCD>
 Add for Fraction<T> {
     type Output = Self;
     fn add(self, other: Self) -> Self::Output {
@@ -82,7 +82,7 @@ Neg for Fraction<T> {
         }
     }
 }
-impl<T:ConstAddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Add<Output=T>+Mul<Output=T>+Signum+GCD>
+impl<T:AddId+Neg<Output=T>+Abs<Output=T>+PartialOrd+Rem<Output = T>+Clone+Div<Output = T> + HasPartialSign+Add<Output=T>+Mul<Output=T>+Signum+GCD>
 Sub for Fraction<T> {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
@@ -141,10 +141,24 @@ PartialOrd for Fraction<T> {
         left.partial_cmp(&right)
     }
 }
-impl<T:ConstAddId+MulId> ConstAddId for Fraction<T> {
+
+#[cfg(not(feature = "specialization"))]
+impl<T> HasPartialSign for Fraction<T>
+where
+    Fraction<T>: PartialOrd + IsAddId,
+{
+    fn partial_sign(&self) -> Option<crate::math::Sign> {
+        match self.partial_cmp(&Self::ZERO) {
+            Some(x) => Some(x.into()),
+            None => None,
+        }
+    }
+}
+
+impl<T:AddId+MulId> AddId for Fraction<T> {
     const ZERO: Self =Self { p: T::ZERO, q: T::ONE };
 }
-impl<T:ConstAddId+MulId+PartialEq+IsAddId> IsAddId for Fraction<T> {
+impl<T:AddId+MulId+PartialEq+IsAddId> IsAddId for Fraction<T> {
     fn is_zero(&self) -> bool {
         self.p.is_zero() && self.q.not_zero()
     }
@@ -152,7 +166,7 @@ impl<T:ConstAddId+MulId+PartialEq+IsAddId> IsAddId for Fraction<T> {
 impl<T:MulId> MulId for Fraction<T> {
     const ONE: Self =Self { p: T::ONE, q: T::ONE };
 }
-impl<T:ConstAddId> NaN for Fraction<T> {
+impl<T:AddId> NaN for Fraction<T> {
     const NAN: Self = Self{p: T::ZERO, q: T::ZERO};
 }
 impl<T:PartialEq+IsAddId> IsNaN for Fraction<T> {
@@ -160,12 +174,40 @@ impl<T:PartialEq+IsAddId> IsNaN for Fraction<T> {
         self.q.is_zero() && self.p.is_zero()
     }
 }
-impl<T:ConstAddId+MulId> PosInf for Fraction<T> {
+impl<T:AddId+MulId> PosInf for Fraction<T> {
     const POS_INF: Self = Self{p: T::ONE, q: T::ZERO};
 }
-impl<T:ConstAddId+MulId+NegMulId> NegInf for Fraction<T> {
+impl<T:AddId+MulId+NegMulId> NegInf for Fraction<T> {
     const NEG_INF: Self = Self{p: T::NEG_ONE, q: T::ZERO};
 }
+
+#[cfg(not(feature = "specialization"))]
+impl<T> crate::math::IsPosInf for Fraction<T>
+where
+    Fraction<T>: PartialEq + PosInf,
+{
+    fn is_pos_inf(&self) -> bool {
+        self == &Self::POS_INF
+    }
+}
+
+#[cfg(not(feature = "specialization"))]
+impl<T> crate::math::IsNegInf for Fraction<T>
+where
+    Fraction<T>: PartialEq + NegInf,
+{
+    fn is_neg_inf(&self) -> bool {
+        self == &Self::NEG_INF
+    }
+}
+
+#[cfg(not(feature = "specialization"))]
+impl<T> crate::math::IsInf for Fraction<T>
+where
+    Fraction<T>: crate::math::IsPosInf + crate::math::IsNegInf,
+{
+}
+
 impl<T:Display> Display for Fraction<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("{}/{}", self.p, self.q))

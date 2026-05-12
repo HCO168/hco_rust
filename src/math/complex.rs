@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use crate::math::traits::{ConstAddId, IsAddId, IsNaN, MulId, NaN};
+use crate::math::traits::{AddId, IsAddId, IsNaN, MulId, NaN};
 
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub struct Complex<T> {
@@ -26,21 +26,21 @@ impl<T> Complex<T> {
     }
 }
 
-impl<T: ConstAddId + MulId> Complex<T> {
+impl<T: AddId + MulId> Complex<T> {
     pub const I: Self = Self {
         re: T::ZERO,
         im: T::ONE,
     };
 }
 
-impl<T: ConstAddId> ConstAddId for Complex<T> {
+impl<T: AddId> AddId for Complex<T> {
     const ZERO: Self = Self {
         re: T::ZERO,
         im: T::ZERO,
     };
 }
 
-impl<T: ConstAddId + MulId> MulId for Complex<T> {
+impl<T: AddId + MulId> MulId for Complex<T> {
     const ONE: Self = Self {
         re: T::ONE,
         im: T::ZERO,
@@ -166,7 +166,7 @@ impl<T: Display + IsAddId> Display for Complex<T> {
 #[cfg(test)]
 mod tests {
     use super::Complex;
-    use crate::math::traits::{ConstAddId, IsNaN, MulId};
+    use crate::math::traits::{AddId, IsNaN, MulId};
 
     #[test]
     fn constants_are_correct() {

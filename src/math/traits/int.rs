@@ -1,5 +1,10 @@
-use std::ops::{Add, Div, Rem, Sub};
-use crate::math::{gcd_euclid_iterative, gcd_stein, Abs, AddId, HasPartialSign};
+#[cfg(feature = "specialization")]
+use std::ops::{Add, Div, Sub};
+#[cfg(feature = "specialization")]
+use std::ops::Rem;
+#[cfg(feature = "specialization")]
+use crate::math::{Abs, AddId, HasPartialSign};
+use crate::math::{gcd_euclid_iterative, gcd_stein};
 use crate::math::traits::mul::MulId;
 
 /// Marker trait for integer types.
@@ -20,6 +25,7 @@ pub trait Dec: Integer {
     fn dec(self) -> Self;
 }
 
+#[cfg(feature = "specialization")]
 impl<T> IntDiv for T
 where
     T: Integer + Div<Output = T>,
@@ -29,6 +35,7 @@ where
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T> Inc for T
 where
     T: Integer + MulId + Add<Output = T>,
@@ -38,6 +45,7 @@ where
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T> Dec for T
 where
     T: Integer + MulId + Sub<Output = T>,
@@ -46,6 +54,35 @@ where
         self - T::ONE
     }
 }
+
+macro_rules! impl_integer_ops {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl IntDiv for $t {
+                fn int_div(self, rhs: Self) -> Self {
+                    self / rhs
+                }
+            }
+
+            #[cfg(not(feature = "specialization"))]
+            impl Inc for $t {
+                fn inc(self) -> Self {
+                    self + Self::ONE
+                }
+            }
+
+            #[cfg(not(feature = "specialization"))]
+            impl Dec for $t {
+                fn dec(self) -> Self {
+                    self - Self::ONE
+                }
+            }
+        )*
+    };
+}
+
+impl_integer_ops!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
 
 macro_rules! impl_integer_markers {
     ($($t:ty),* $(,)?) => {
