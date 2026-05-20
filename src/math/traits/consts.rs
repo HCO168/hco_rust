@@ -15,6 +15,13 @@ pub trait IsMinValue: MinValue + PartialEq {
     {
         self.eq(&Self::MIN)
     }
+
+    fn not_min_value(&self) -> bool
+    where
+        Self: Sized,
+    {
+        !self.is_min_value()
+    }
 }
 
 pub trait IsMaxValue: MaxValue + PartialEq {
@@ -23,6 +30,13 @@ pub trait IsMaxValue: MaxValue + PartialEq {
         Self: Sized,
     {
         self.eq(&Self::MAX)
+    }
+
+    fn not_max_value(&self) -> bool
+    where
+        Self: Sized,
+    {
+        !self.is_max_value()
     }
 }
 
@@ -62,6 +76,13 @@ pub trait IsMinFiniteValue: MinFiniteValue + PartialEq {
     {
         self.eq(&Self::MIN_FINITE)
     }
+
+    fn not_min_finite_value(&self) -> bool
+    where
+        Self: Sized,
+    {
+        !self.is_min_finite_value()
+    }
 }
 
 pub trait IsMaxFiniteValue: MaxFiniteValue + PartialEq {
@@ -70,6 +91,13 @@ pub trait IsMaxFiniteValue: MaxFiniteValue + PartialEq {
         Self: Sized,
     {
         self.eq(&Self::MAX_FINITE)
+    }
+
+    fn not_max_finite_value(&self) -> bool
+    where
+        Self: Sized,
+    {
+        !self.is_max_finite_value()
     }
 }
 
@@ -86,7 +114,9 @@ pub trait NegInf {
 }
 
 pub trait IsPosInf {
-    fn is_pos_inf(&self) -> bool;
+    fn is_pos_inf(&self) -> bool {
+        false
+    }
 
     fn not_pos_inf(&self) -> bool {
         !self.is_pos_inf()
@@ -94,7 +124,9 @@ pub trait IsPosInf {
 }
 
 pub trait IsNegInf {
-    fn is_neg_inf(&self) -> bool;
+    fn is_neg_inf(&self) -> bool {
+        false
+    }
 
     fn not_neg_inf(&self) -> bool {
         !self.is_neg_inf()
@@ -118,11 +150,23 @@ pub trait MaxNegativeValue {
 }
 
 pub trait IsMinPositiveValue {
-    fn is_min_positive_value(&self) -> bool;
+    fn is_min_positive_value(&self) -> bool {
+        false
+    }
+
+    fn not_min_positive_value(&self) -> bool {
+        !self.is_min_positive_value()
+    }
 }
 
 pub trait IsMaxNegativeValue {
-    fn is_max_negative_value(&self) -> bool;
+    fn is_max_negative_value(&self) -> bool {
+        false
+    }
+
+    fn not_max_negative_value(&self) -> bool {
+        !self.is_max_negative_value()
+    }
 }
 
 #[cfg(feature = "specialization")]
@@ -246,29 +290,16 @@ impl<T: PartialEq + MaxNegativeValue> IsMaxNegativeValue for T {
 macro_rules! impl_false_checks {
     ($($t:ty),* $(,)?) => {
         $(
-            impl IsPosInf for $t {
-                fn is_pos_inf(&self) -> bool {
-                    false
-                }
-            }
+            impl IsPosInf for $t {}
 
-            impl IsNegInf for $t {
-                fn is_neg_inf(&self) -> bool {
-                    false
-                }
-            }
+            impl IsNegInf for $t {}
 
-            impl IsMinPositiveValue for $t {
-                fn is_min_positive_value(&self) -> bool {
-                    false
-                }
-            }
+            #[cfg(not(feature = "specialization"))]
+            impl IsInf for $t {}
 
-            impl IsMaxNegativeValue for $t {
-                fn is_max_negative_value(&self) -> bool {
-                    false
-                }
-            }
+            impl IsMinPositiveValue for $t {}
+
+            impl IsMaxNegativeValue for $t {}
         )*
     };
 }

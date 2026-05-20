@@ -1,4 +1,3 @@
-#[cfg(feature = "specialization")]
 use std::ops::{Add, Div, Sub};
 #[cfg(feature = "specialization")]
 use std::ops::Rem;
@@ -14,15 +13,30 @@ pub trait Integer {}
 pub trait NonInteger {}
 
 pub trait IntDiv: Integer {
-    fn int_div(self, rhs: Self) -> Self;
+    fn int_div(self, rhs: Self) -> Self
+    where
+        Self: Sized + Div<Output = Self>,
+    {
+        self / rhs
+    }
 }
 
 pub trait Inc: Integer {
-    fn inc(self) -> Self;
+    fn inc(self) -> Self
+    where
+        Self: Sized + MulId + Add<Output = Self>,
+    {
+        self + Self::ONE
+    }
 }
 
 pub trait Dec: Integer {
-    fn dec(self) -> Self;
+    fn dec(self) -> Self
+    where
+        Self: Sized + MulId + Sub<Output = Self>,
+    {
+        self - Self::ONE
+    }
 }
 
 #[cfg(feature = "specialization")]

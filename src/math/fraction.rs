@@ -146,14 +146,7 @@ PartialOrd for Fraction<T> {
 impl<T> HasPartialSign for Fraction<T>
 where
     Fraction<T>: PartialOrd + IsAddId,
-{
-    fn partial_sign(&self) -> Option<crate::math::Sign> {
-        match self.partial_cmp(&Self::ZERO) {
-            Some(x) => Some(x.into()),
-            None => None,
-        }
-    }
-}
+{}
 
 impl<T:AddId+MulId> AddId for Fraction<T> {
     const ZERO: Self =Self { p: T::ZERO, q: T::ONE };
