@@ -1,0 +1,17 @@
+[
+  {
+    "key": "verb.fly",
+    "category": "action",
+    "pattern": "intransitive"
+  },
+  {
+    "key": "verb.like",
+    "category": "mental",
+    "pattern": "transitive"
+  },
+  {
+    "key": "verb.give",
+    "category": "transfer",
+    "pattern": "ditransitive"
+  }
+]
