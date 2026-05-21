@@ -1,0 +1,26 @@
+[
+  {
+    "key": "person.alice",
+    "category": "person"
+  },
+  {
+    "key": "person.bob",
+    "category": "person"
+  },
+  {
+    "key": "place.sky",
+    "category": "place"
+  },
+  {
+    "key": "object.book",
+    "category": "object"
+  },
+  {
+    "key": "animal.turkey",
+    "category": "animal"
+  },
+  {
+    "key": "country.turkey",
+    "category": "country"
+  }
+]
