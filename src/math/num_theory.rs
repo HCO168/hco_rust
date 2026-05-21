@@ -1,5 +1,6 @@
-use std::ops::Rem;
-use crate::math::traits::additive::{Abs, AddId, HasPartialSign};
+use std::ops::{BitOr, Rem, Shl, ShrAssign, SubAssign};
+use crate::math::{IsAddId, TrailingZeros};
+use crate::math::traits::{Abs, AddId, HasPartialSign};
 
 pub fn gcd_euclid_recursive<T>(a: T, b: T) -> T
     where
@@ -26,11 +27,12 @@ pub fn gcd_euclid_iterative<T>(mut a: T, mut b: T) -> T
     a
 }
 
-pub const fn gcd_stein(mut a: i64, mut b: i64) -> i64 {
-    if a == 0 {
+pub fn gcd_stein<T>(mut a: T, mut b: T) -> T
+where T:IsAddId+PartialOrd+SubAssign+Abs<Output = T> +BitOr<Output=T> +TrailingZeros +ShrAssign<usize>+Copy +Shl<usize, Output = T>{
+    if a.is_zero(){
         return b.abs();
     }
-    if b == 0 {
+    if b.is_zero() {
         return a.abs();
     }
 
@@ -40,7 +42,7 @@ pub const fn gcd_stein(mut a: i64, mut b: i64) -> i64 {
     b = b.abs();
 
     a >>= a.trailing_zeros();
-    while b != 0 {
+    while b.not_zero() {
         b >>= b.trailing_zeros();
         if a > b {
             std::mem::swap(&mut a, &mut b);
@@ -51,28 +53,23 @@ pub const fn gcd_stein(mut a: i64, mut b: i64) -> i64 {
     a << shift
 }
 
-pub const fn gcd_subtractive(mut a: i64, mut b: i64) -> i64 {
+pub fn gcd_subtractive<T>(mut a: T, mut b: T) -> T
+where T:AddId+PartialOrd+SubAssign+Abs<Output = T> +HasPartialSign + Clone{
     a = a.abs();
     b = b.abs();
-    if a == 0 {
+    if a.is_zero() {
         return b;
     }
-    if b == 0 {
+    if b.is_zero(){
         return a;
     }
 
     while a != b {
         if a > b {
-            a -= b;
+            a -= b.clone();
         } else {
-            b -= a;
+            b -= a.clone();
         }
     }
     a
-}
-
-#[inline]
-pub const fn gcd(a: i64, b: i64) -> i64 {
-    // Keep the default fast implementation here.
-    gcd_stein(a, b)
 }

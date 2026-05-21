@@ -1,4 +1,3 @@
-use crate::dprintln;
 use crate::math::digits::Digits;
 use crate::ntr_lang::lang::{LanguageParser, NumToLangParser, NumberConvertError};
 
@@ -126,7 +125,7 @@ impl NumToLangParser for NumberToChineseParser {
                                 0=>(),
                                 1=>{
                                     text.push('十');
-                                    dprintln!("place: {place}; section_place:{section_place}; last digit: {last_digit}; section digit: {section_digit}; prefer yishi: {}",self.prefer_one_ten);
+                                    //dprintln!("place: {place}; section_place:{section_place}; last digit: {last_digit}; section digit: {section_digit}; prefer yishi: {}",self.prefer_one_ten);
                                     if((*section_digit==1)&&(!self.prefer_one_ten)&&(section_start+section_place==last_digit)){
                                         continue;
                                     }

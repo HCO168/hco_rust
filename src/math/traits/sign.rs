@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::ops::Neg;
-
-use crate::math::traits::additive::AddId;
+use crate::math::AddId;
+use crate::math::IsAddId;
 
 #[repr(i8)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Debug)]
@@ -30,10 +30,31 @@ impl From<Sign> for Ordering {
         }
     }
 }
+impl From<Sign> for i8 {
+    fn from(value: Sign) -> Self {
+        match value {
+            Sign::Negative => -1,
+            Sign::Zero => 0,
+            Sign::Positive => 1,
+        }
+    }
+}
+impl From<i8> for Sign{
+    fn from(value: i8) -> Self {
+        if value < 0 {
+            Sign::Negative
+        }else if value == 0 {
+            Sign::Zero
+        }else{
+            Sign::Positive
+        }
+    }
+}
 
-pub trait HasPartialSign: PartialOrd {
-    fn partial_sign(&self) -> Option<Sign>;
-
+pub trait HasPartialSign: PartialOrd+IsAddId {
+    fn partial_sign(&self) -> Option<Sign> {
+        self.partial_cmp(&Self::ZERO).map(Into::into)
+    }
     fn is_positive(&self) -> bool {
         self.partial_sign() == Some(Sign::Positive)
     }
@@ -42,20 +63,28 @@ pub trait HasPartialSign: PartialOrd {
         self.partial_sign() == Some(Sign::Negative)
     }
 
-    fn is_zero(&self) -> bool {
-        self.partial_sign() == Some(Sign::Zero)
-    }
-
     fn is_positive_or_zero(&self) -> bool {
         self.is_positive() || self.is_zero()
+    }
+
+    fn not_positive_or_zero(&self) -> bool {
+        !self.is_positive_or_zero()
     }
 
     fn is_negative_or_zero(&self) -> bool {
         self.is_negative() || self.is_zero()
     }
 
+    fn not_negative_or_zero(&self) -> bool {
+        !self.is_negative_or_zero()
+    }
+
     fn is_positive_or_negative(&self) -> bool {
         self.is_positive() || self.is_negative()
+    }
+
+    fn not_positive_or_negative(&self) -> bool {
+        !self.is_positive_or_negative()
     }
 
     fn not_positive(&self) -> bool {
@@ -65,20 +94,16 @@ pub trait HasPartialSign: PartialOrd {
     fn not_negative(&self) -> bool {
         !self.is_negative()
     }
-
-    fn not_zero(&self) -> bool {
-        !self.is_zero()
-    }
 }
 
 pub trait HasSign: HasPartialSign + Ord {
-    fn sign(&self) -> Sign;
+    fn sign(&self) -> Sign {
+        self.cmp(&Self::ZERO).into()
+    }
 }
-
-pub trait Signum: PartialOrd {
-    fn signum(&self) -> Self;
+pub trait Signum: PartialOrd{
+     fn signum(&self) ->Self;
 }
-
 pub trait Abs {
     type Output;
 
@@ -88,28 +113,67 @@ pub trait Abs {
 pub trait Signed: Neg<Output = Self> {}
 pub trait Unsigned {}
 
+#[cfg(feature = "specialization")]
 impl<T> HasPartialSign for T
 where
-    T: PartialOrd + AddId,
+    T: PartialOrd + AddId+IsAddId,
 {
     fn partial_sign(&self) -> Option<Sign> {
         match self.partial_cmp(&T::ZERO) {
-            Some(Ordering::Less) => Some(Sign::Negative),
-            Some(Ordering::Equal) => Some(Sign::Zero),
-            Some(Ordering::Greater) => Some(Sign::Positive),
+            Some(x) => Some(x.into()),
             None => None,
         }
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<T> HasSign for T
 where
-    T: HasPartialSign + Ord,
+    T: HasPartialSign + Ord+AddId,
 {
     fn sign(&self) -> Sign {
-        self.partial_sign().unwrap_or_else(|| todo!("HasSign called on unordered value"))
+        self.cmp(&T::ZERO).into()
     }
 }
+
+macro_rules! impl_has_partial_sign_ord {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl HasPartialSign for $t {
+                fn partial_sign(&self) -> Option<Sign> {
+                    Some(self.cmp(&Self::ZERO).into())
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! impl_has_partial_sign_partial_ord {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl HasPartialSign for $t {
+                fn partial_sign(&self) -> Option<Sign> {
+                    self.partial_cmp(&Self::ZERO).map(Into::into)
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! impl_has_sign_primitive {
+    ($($t:ty),* $(,)?) => {
+        $(
+            #[cfg(not(feature = "specialization"))]
+            impl HasSign for $t {}
+        )*
+    };
+}
+
+impl_has_partial_sign_ord!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+impl_has_partial_sign_partial_ord!(f32, f64);
+impl_has_sign_primitive!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
 
 macro_rules! impl_unsigned {
     ($($t:ty),* $(,)?) => {

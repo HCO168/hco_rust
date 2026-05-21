@@ -3,7 +3,6 @@ use std::collections::BTreeMap as OrderedMap;
 use std::fmt::Formatter;
 use std::fmt::Display;
 use crate::datas::interval_set::PointStatus::{InExclude, InInterval, InInclude, Outside};
-use crate::datas::ord_wrap::Ordered;
 use crate::datas::interval::*;
 use crate::datas::ordered::*;
 
@@ -293,6 +292,7 @@ impl<'a,T:Ord+ToString> SetOutputHelper<'a,T>{
 mod tests {
     use super::*;
     use std::collections::{BTreeMap as OrderedMap, BTreeSet as OrderedSet};
+    use crate::datas::Ordered;
 
     // ---- 小工具 ----------------------------------------------------------------
     fn cs_i32() -> IntervalSet<i32> {
