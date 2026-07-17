@@ -1,0 +1,14 @@
+{
+  "fly": {
+    "past": "flew",
+    "past_participle": "flown",
+    "progressive": "flying",
+    "present_third_person": "flies"
+  },
+  "give": {
+    "past": "gave",
+    "past_participle": "given",
+    "progressive": "giving",
+    "present_third_person": "gives"
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "key": "verb.fly",
+    "category": "action",
+    "pattern": "intransitive"
+  },
+  {
+    "key": "verb.like",
+    "category": "mental",
+    "pattern": "transitive"
+  },
+  {
+    "key": "verb.transfer",
+    "category": "transfer",
+    "pattern": "ditransitive"
+  },
+  {
+    "key": "verb.exist",
+    "category": "state",
+    "pattern": "intransitive"
+  }
+]

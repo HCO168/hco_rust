@@ -88,3 +88,37 @@ modify_verb_by_time<en>{
 }
 ```
 
+## Website Localization Keys (Current Practice)
+
+Use stable key namespaces so UI text and sentence generation can coexist.
+
+- `ui.*`: UI labels and actions
+  - examples: `ui.user`, `ui.username`, `ui.password`, `ui.login`
+- `web.*`: web domain entities
+  - examples: `web.file`, `web.page`, `web.requested_file`
+- `connector.*`: connectors for phrase composition
+  - examples: `connector.or`, `connector.is`
+- `state.*`: status words
+  - examples: `state.invalid`, `state.not_found`, `state.expired`
+- `action.*`: action words
+  - examples: `action.save`, `action.load`, `action.try_again`
+- `verb.*`: composable actions/states for clause generation
+  - example: `verb.exist`
+
+Language inheritance fallback:
+
+- Each language pack has a `parent_lang` field.
+- Lookup order: current language -> parent language (recursive) -> raw key.
+- Current default setup: `zh_cn` falls back to `en` for missing entries.
+
+Example (dynamic sentence):
+
+- clause: `Clause::new("web.requested_file", "verb.exist").negative()`
+- English: `the file you requested does not exist.`
+- Chinese: `你请求的文件不存在。`
+
+Example (key-based phrase composition):
+
+- keys: `[ui.username, connector.or, ui.password, connector.is, state.invalid]`
+- English (`compose_sentence`): `username or password is invalid.`
+- Chinese (`compose_sentence`): `用户名或密码无效。`
